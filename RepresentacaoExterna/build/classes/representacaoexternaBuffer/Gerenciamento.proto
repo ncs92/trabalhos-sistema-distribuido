@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package example.options;
+
+message Gerenciamento {
+  required string titulo = 1;
+  required string autor = 2;
+  required string cantor = 3;
+  required int32 ano = 4;
+  required int32 num_pagina = 5;
+  required string isbn = 6;
+  required float peso = 7;
+  required Dimensao dim = 8
+  required string album = 9;
+  required string data_lancamento = 10;
+}
+
+message Dimensao {
+    required float altura = 1;
+    required float largura = 2;
+    required float comprimento = 3;
+  }
