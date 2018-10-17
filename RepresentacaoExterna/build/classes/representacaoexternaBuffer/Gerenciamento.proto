@@ -1,6 +1,6 @@
-syntax = "proto3";
+syntax = "proto2";
 
-package example.options;
+package representacaoexternaBuffer;
 
 message Gerenciamento {
   required string titulo = 1;
@@ -10,7 +10,7 @@ message Gerenciamento {
   required int32 num_pagina = 5;
   required string isbn = 6;
   required float peso = 7;
-  required Dimensao dim = 8
+  required Dimensao dim = 8;
   required string album = 9;
   required string data_lancamento = 10;
 }

@@ -1,39 +1,16 @@
-/*
- *  Learning Project.
- */
-package representacaoexternaBuffer;
+import socket
+import Gerenciamento_pb2
 
-import representacaoexternaSerializacao.*;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+g = Gerenciamento_pb2.Gerenciamento()
+print("Executando...")
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.bind(('127.0.0.1', 5555))
+s.listen(10)
+con, cliente = s.accept()
+print ('Conectado por', cliente)
+msg = con.recv(1024)
+print('mensagem enviada: ', msg)
+print ('Finalizando conexao do cliente', cliente)
+    
 
-/**
- *
- * @author rodrigo
- */
-public class Server {
-
-    public static void main(String[] args) throws ClassNotFoundException {
-        Gerenciamento g = null;
-
-        try {
-            ServerSocket serverSocket = new ServerSocket(5555);
-            System.out.println("Server running....");
-            while (true) {
-                Socket clientSocket = serverSocket.accept();
-                ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
-                g = (Gerenciamento) in.readObject();
-                System.out.println("Lido: " + g);
-                clientSocket.close();
-            }
-        } catch (IOException ex) {
-            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-    }
-
-}
+s.close()
