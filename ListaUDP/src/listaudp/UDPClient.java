@@ -11,7 +11,6 @@ import javax.swing.JOptionPane;
 
 public class UDPClient {
 
-    static ArrayList<String> bloqueados = new ArrayList<>();
     static Read receptor;
     static String nomeNick = "";
 
@@ -58,20 +57,19 @@ public class UDPClient {
                             String msg = JOptionPane.showInputDialog("Informe a msg...");
                             int qtd = (int) Math.round((msg.getBytes().length / 674) + 0.5);
                             int qtdEnviado = 0;
-                            for (int i = 0; i < qtd; i++) {
-                                byte[] nickBuffer = new byte[200];
-                                nickBuffer = nomeNick.getBytes();
-                                byte[] cmdBuffer = new byte[150];
-                                cmdBuffer = cmd.getBytes();
-                                byte[] msgBuffer = msg.getBytes();
 
-                                System.arraycopy(nickBuffer, 0, buffer, 0, 200);
-                                System.arraycopy(cmdBuffer, 0, buffer, 201, 150);
-                                System.arraycopy(msgBuffer, 0, buffer, 352, 674);
+                            byte[] nickBuffer = new byte[200];
+                            nickBuffer = nomeNick.getBytes();
+                            byte[] cmdBuffer = new byte[150];
+                            cmdBuffer = cmd.getBytes();
+                            byte[] msgBuffer = msg.getBytes();
 
-                                DatagramPacket pacote = new DatagramPacket(buffer, buffer.length, enderecoDestino, 5555);
-                                dgramSocket.send(pacote);
-                            }
+                            System.arraycopy(nickBuffer, 0, buffer, 0, 200);
+                            System.arraycopy(cmdBuffer, 0, buffer, 201, 150);
+                            System.arraycopy(msgBuffer, 0, buffer, 352, 674);
+
+                            DatagramPacket pacote = new DatagramPacket(buffer, buffer.length, enderecoDestino, 5555);
+                            dgramSocket.send(pacote);
 
                         } else {
                             JOptionPane.showMessageDialog(null, "Informe o nome do nick antes de mandar uma msg.", "Alert", JOptionPane.WARNING_MESSAGE);
@@ -100,6 +98,7 @@ public class UDPClient {
 class Read extends Thread {
 
     DatagramSocket ds;
+    static ArrayList<String> bloqueados = new ArrayList<>();
 
     public Read(DatagramSocket socket) {
         ds = socket;
@@ -112,17 +111,38 @@ class Read extends Thread {
                 DatagramPacket pacote = new DatagramPacket(buffer, buffer.length);
                 ds.receive(pacote);
                 buffer = pacote.getData();
-                
-                System.arraycopy(nickBuffer, 0, buffer, 0, 200);
-                System.arraycopy(cmdBuffer, 0, buffer, 201, 150);
-                System.arraycopy(msgBuffer, 0, buffer, 352, 674);
-                
+
                 byte[] nickBuffer = new byte[200];
                 byte[] cmdBuffer = new byte[150];
                 byte[] msgBuffer = new byte[674];
-                
-                
-                
+
+                System.arraycopy(buffer, 0, nickBuffer, 0, 200);
+                System.arraycopy(buffer, 201, nickBuffer, 0, 200);
+                System.arraycopy(buffer, 352, nickBuffer, 0, 200);
+
+                String nick = new String(nickBuffer);
+                String cmd = new String(cmdBuffer);
+                String msg = new String(msgBuffer);
+
+                System.out.println("Recebido nick: " + nick);
+                System.out.println("Recebido cmd: " + cmd);
+                System.out.println("Recebido msg: " + msg);
+
+                if (bloqueados.contains(nick)) {
+                    if (cmd.equals("ADDNICK")) {
+                        int escolha = JOptionPane.showConfirmDialog(null, nick + " deseja se conectar, você deseja aceitar?");
+                        if (escolha == JOptionPane.YES_OPTION) {
+
+                        } else if (escolha == JOptionPane.NO_OPTION) {
+                            bloqueados.add(nick);
+                        }
+                    }else if (cmd.equals("MSG")){
+                        System.out.println(nick + " disse: " + msg);
+                    }
+                }else{
+                    System.out.println(nick + " tentou se conectar, mas está bloqueado");
+                }
+
             } catch (Exception e) {
                 System.out.println(e.getMessage());
             }
