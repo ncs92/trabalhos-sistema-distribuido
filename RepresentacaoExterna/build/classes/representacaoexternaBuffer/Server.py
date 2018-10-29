@@ -1,5 +1,5 @@
 import socket
-import Gerenciamento_pb2
+from Gerenciamento_pb2.py import Gerenciamento
 
 g = Gerenciamento_pb2.Gerenciamento()
 print("Executando...")
