@@ -1,5 +1,6 @@
 import socket
 from Gerenciamento_pb2 import Gerenciamento 
+import base64
 
 g = Gerenciamento()
 print("Executando...")
@@ -9,7 +10,7 @@ s.listen(10)
 con, cliente = s.accept()
 print ('Conectado por', cliente)
 msg = con.recv(1024)
-print('mensagem enviada: ', msg)
+print('mensagem enviada: ', g.ParseFromString(base64.b64decode(msg).decode('utf-8')))
 print ('Finalizando conexao do cliente', cliente)
     
 

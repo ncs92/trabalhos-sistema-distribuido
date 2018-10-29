@@ -34,10 +34,10 @@ public class Client {
                     .setDim(dimensao)
                     .setAlbum("lorion")
                     .setDataLancamento("01/05/2017").build();
-            
+            System.out.println(g.toString());
             Socket clientSocket = new Socket(InetAddress.getByName("127.0.0.1"), 5555);
             ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
-            out.write(g.toByteArray());
+            out.write(g.toString().getBytes());
             out.flush();
             System.out.println("Client sends Object.");
             clientSocket.close();
