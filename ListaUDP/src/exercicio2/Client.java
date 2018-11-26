@@ -102,7 +102,7 @@ public class Client implements Runnable {
             socket.send(packet);
             
             if (!waitForServerPartResponse(socket)) {
-                // Volta no loop e reenvia o pedaço
+                // TODO: Volta no loop e reenvia o pedaço
                 continue;
             }
             

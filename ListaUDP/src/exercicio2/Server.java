@@ -1,7 +1,6 @@
 package exercicio2;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -42,10 +41,6 @@ public class Server implements Runnable {
     
     private void magic() throws IOException {
         System.out.println("Waiting for file info data...");
-//        byte[] buf = new byte[1024];
-//        DatagramPacket packet = new DatagramPacket(buf, buf.length);
-//        socket.receive(packet);
-        
         this.waitForFileInfoReceived(socket);
     }
     
