@@ -1,28 +1,4 @@
-# Trabalhos da Disciplina de Sistemas Distribuídos
-## Bacharelado em Ciência da Computação - UTFPR - Campus Campo Mourão
-
-
-Lista de exercícios:
-
-1) Fazer o chat P2P  usando UDP com a porta 5555.
-O chat deve possuir as seguintes funcionalidades:
-- aceitar ou bloquear usuários via nick (apelido)
-- enviar e receber mensagens via nick e via IP
-O formato das mensagens deve seguir o seguinte padrão:
-NICKorigem, CMD, DADOS
-Se CMD:
-- ADDNICK: solicita o recebimento de mensagens com origem de NICKorigem. DADOS = "Mensagem qualquer de solicitação".
-- MSG: mensagem enviada por NICKorigem. DADOS = "conteúdo da mensagem". Se ADDNICK não foi enviado ou está na lista de bloqueio, recuse a mensagem.
-
-
-2) Fazer um sistema de upload de arquivos via UDP. Um servidor UDP deverá receber as partes dos arquivos (1024 bytes), verificar ao final a integridade via um checksum (MD5) e armazenar o arquivo em uma pasta padrão.
-
-
-
-
-
-
-Trabalho
+# Trabalho de Sistemas Distribuídos
 
 Implementar um serviço de chat que possibilite:
 - envio de mensagens para um grupo de pessoas (MulticastSocket)
