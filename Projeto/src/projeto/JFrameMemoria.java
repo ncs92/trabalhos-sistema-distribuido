@@ -18,13 +18,17 @@ import javax.swing.JLabel;
  */
 public class JFrameMemoria extends javax.swing.JFrame {
     ArrayList<String> fotos = new ArrayList<String>();
-    
+    ArrayList<Integer> mr = new ArrayList();
+    int cliques = 0;
     /**
      * Creates new form JFrameVelha
      */
     public JFrameMemoria() {
         initComponents();
-       
+        for(int i = 0; i < 37; i++){
+            matrixResultado.add(0);
+        }
+        
         fotos.add("01.png");
         fotos.add("02.png");
         fotos.add("03.png");
@@ -60,6 +64,14 @@ public class JFrameMemoria extends javax.swing.JFrame {
     
     public void geraNovoJogo(){
         Collections.shuffle(fotos);  
+    }
+    
+    public void atualizaMatrix(){
+        if (mr.get(0) == 0) {
+            jButton1.setIcon(null);
+        }else{
+            this.jButton1.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(0))));
+        }
     }
 
     /**
@@ -129,7 +141,6 @@ public class JFrameMemoria extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setMinimumSize(new java.awt.Dimension(800, 487));
-        setPreferredSize(new java.awt.Dimension(800, 487));
         setSize(new java.awt.Dimension(800, 487));
 
         jPanel1.setBackground(new java.awt.Color(255, 255, 255));
@@ -409,7 +420,7 @@ public class JFrameMemoria extends javax.swing.JFrame {
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, 67, Short.MAX_VALUE)
                     .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jButton3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -417,37 +428,37 @@ public class JFrameMemoria extends javax.swing.JFrame {
                     .addComponent(jButton5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jButton6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton8, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jButton9, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton10, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton11, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton12, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton13, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jButton13, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton8, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton15, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jButton16, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton17, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton18, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton19, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton20, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jButton20, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton15, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton22, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jButton23, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton24, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton25, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton26, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton27, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jButton27, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton22, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton29, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jButton30, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton31, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton32, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton33, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton34, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jButton34, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton29, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(jButton36, javax.swing.GroupLayout.DEFAULT_SIZE, 64, Short.MAX_VALUE)
@@ -647,184 +658,248 @@ public class JFrameMemoria extends javax.swing.JFrame {
 
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton6.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(5))));
+        System.out.println(this.jButton6.getIcon());
     }//GEN-LAST:event_jButton6ActionPerformed
 
     private void jButton13ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton13ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton13.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(11))));
     }//GEN-LAST:event_jButton13ActionPerformed
 
     private void jButton20ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton20ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton20.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(17))));
     }//GEN-LAST:event_jButton20ActionPerformed
 
     private void jButton27ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton27ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton27.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(6))));
     }//GEN-LAST:event_jButton27ActionPerformed
 
     private void jButton34ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton34ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton34.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(12))));
     }//GEN-LAST:event_jButton34ActionPerformed
 
     private void jButton41ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton41ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton41.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(17))));
     }//GEN-LAST:event_jButton41ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here
+        cliques++;
         this.jButton1.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(0))));
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton2.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(1))));
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton3.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(2))));
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton4.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(3))));
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton5.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(4))));
     }//GEN-LAST:event_jButton5ActionPerformed
 
     private void jButton8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton8ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton8.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(6))));
     }//GEN-LAST:event_jButton8ActionPerformed
 
     private void jButton9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton9ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton9.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(7))));
     }//GEN-LAST:event_jButton9ActionPerformed
 
     private void jButton10ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton10ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton10.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(8))));
     }//GEN-LAST:event_jButton10ActionPerformed
 
     private void jButton11ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton11ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton11.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(9))));
     }//GEN-LAST:event_jButton11ActionPerformed
 
     private void jButton12ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton12ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton12.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(10))));
     }//GEN-LAST:event_jButton12ActionPerformed
 
     private void jButton15ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton15ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton15.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(12))));
     }//GEN-LAST:event_jButton15ActionPerformed
 
     private void jButton16ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton16ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton16.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(13))));
     }//GEN-LAST:event_jButton16ActionPerformed
 
     private void jButton17ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton17ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton17.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(14))));
     }//GEN-LAST:event_jButton17ActionPerformed
 
     private void jButton18ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton18ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton18.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(15))));
     }//GEN-LAST:event_jButton18ActionPerformed
 
     private void jButton19ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton19ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton19.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(16)))); 
     }//GEN-LAST:event_jButton19ActionPerformed
 
     private void jButton22ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton22ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton22.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(1))));
     }//GEN-LAST:event_jButton22ActionPerformed
 
     private void jButton23ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton23ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton23.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(2))));
     }//GEN-LAST:event_jButton23ActionPerformed
 
     private void jButton24ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton24ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton24.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(3))));
     }//GEN-LAST:event_jButton24ActionPerformed
 
     private void jButton25ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton25ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton25.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(4))));
     }//GEN-LAST:event_jButton25ActionPerformed
 
     private void jButton26ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton26ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton26.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(5))));
     }//GEN-LAST:event_jButton26ActionPerformed
 
     private void jButton29ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton29ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton29.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(7))));
     }//GEN-LAST:event_jButton29ActionPerformed
 
     private void jButton30ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton30ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton30.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(8))));
     }//GEN-LAST:event_jButton30ActionPerformed
 
     private void jButton31ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton31ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton31.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(9))));
     }//GEN-LAST:event_jButton31ActionPerformed
 
     private void jButton32ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton32ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton32.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(10))));
     }//GEN-LAST:event_jButton32ActionPerformed
 
     private void jButton33ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton33ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton33.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(11))));
     }//GEN-LAST:event_jButton33ActionPerformed
 
     private void jButton36ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton36ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton36.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(13))));
     }//GEN-LAST:event_jButton36ActionPerformed
   
     private void jButton37ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton37ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton37.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(14))));
     }//GEN-LAST:event_jButton37ActionPerformed
 
     private void jButton38ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton38ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton38.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(15))));
     }//GEN-LAST:event_jButton38ActionPerformed
 
     private void jButton39ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton39ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton39.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(16))));
     }//GEN-LAST:event_jButton39ActionPerformed
 
     private void jButton40ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton40ActionPerformed
         // TODO add your handling code here:
+        cliques++;
         this.jButton40.setIcon(new ImageIcon(getClass().getResource("./../img/" + fotos.get(0))));
     }//GEN-LAST:event_jButton40ActionPerformed
 
+    public void ocultarDesenhos(){
+        this.jButton1.setIcon(null);
+        this.jButton2.setIcon(null);
+        this.jButton3.setIcon(null);
+        this.jButton4.setIcon(null);
+        this.jButton5.setIcon(null);
+        this.jButton6.setIcon(null);
+        this.jButton9.setIcon(null);
+        this.jButton8.setIcon(null);
+        this.jButton10.setIcon(null);
+        this.jButton11.setIcon(null);
+        this.jButton12.setIcon(null);
+        this.jButton13.setIcon(null);
+        this.jButton16.setIcon(null);
+        this.jButton15.setIcon(null);
+        this.jButton17.setIcon(null);        
+        this.jButton18.setIcon(null);
+        this.jButton19.setIcon(null);
+        this.jButton20.setIcon(null);
+        this.jButton22.setIcon(null);
+        this.jButton23.setIcon(null);
+        this.jButton24.setIcon(null);
+        this.jButton1.setIcon(null);
+        this.jButton1.setIcon(null);
+        this.jButton1.setIcon(null);
+        this.jButton1.setIcon(null);
+    }
     /**
      * @param args the command line arguments
      */
