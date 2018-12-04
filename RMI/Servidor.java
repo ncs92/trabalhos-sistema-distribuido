@@ -1,7 +1,8 @@
 /**
  * Inicializa o servico
  * Autoras: Letícia Mazzo e Elaine Sangali
- * data: 27/10/2018
+ * Data de Criação: 27/10/2018
+ * Data de Modificação: 03/12/2018
  */
 
 import java.rmi.registry.Registry;
@@ -19,7 +20,7 @@ public class Servidor {
 
              /* registra o objeto remoto no Binder */
              Registry registry = LocateRegistry.getRegistry("localhost");
-	         registry.bind("ServicoGerenciamento", c);
+	         registry.bind("ServicoLivro", c);
 
 	         /* aguardando invocacoes remotas */
 	         System.out.println("Servidor pronto ...");

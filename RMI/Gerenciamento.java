@@ -1,7 +1,8 @@
 /**
  * Implementacao do objeto remoto
  * Autoras: Letícia Mazzo e Elaine Sangali
- * data: 27/10/2018
+ * Data de Criação: 27/10/2018
+ * Data de Modificação: 03/12/2018
  */
 
 import java.rmi.Remote;
@@ -18,8 +19,16 @@ public class Gerenciamento extends UnicastRemoteObject implements Gerencia {
         System.out.println("Objeto remoto instanciado");
     }
 
-    public ArrayList<String> adicionar (String livro) throws RemoteException {
-        ArrayList<String> livros = new ArrayList();
+    // public ArrayList<String> adicionar () throws RemoteException {
+    //     ArrayList<String> livros = new ArrayList();
+    //     livros.add("Lexico - Max Barry");
+    //     livros.add("Biblioteca de Almas - Ransom Riggs");
+    //     System.out.println("Livro adicionado com sucesso!");
+
+    //     return livros;
+    // }
+
+    public ArrayList<String> adicionar (ArrayList<String> livros, String livro) throws RemoteException {
         livros.add(livro);
         System.out.println("Livro adicionado com sucesso!");
 
@@ -30,28 +39,19 @@ public class Gerenciamento extends UnicastRemoteObject implements Gerencia {
         System.out.println("Lista de Livros: ");
         int n = livros.size();
         for(int i = 0; i < n; i++){
-            System.out.println("%d: %s", i, livros.get(i));
+            System.out.printf("%d: %s\n", i, livros.get(i));
         }
     }
 
-    public void excluir (ArrayList<String> livros) throws RemoteException {
-        System.out.println("Informe o ID do livro que deseja excluir: ");
-
-        int n = livros.size();
-        int i;
-
-        for(i = 0; i < n; i++){
-            System.out.println("%d: %s", i, livros.get(i));
-        }
-
-        i = ler.nextInt();
-
+    public ArrayList<String> excluir (ArrayList<String> livros, String id) throws RemoteException {
         try {
-            
-            livros.remove(i);
-          } catch (IndexOutOfBoundsException e) {
-              System.out.printf("\nErro: ID inválido (%s).",
+            livros.remove(id);
+            System.out.println("Livro removido com sucesso!\n");
+        } catch (IndexOutOfBoundsException e) {
+                System.out.printf("\nErro ao excluir: ID inválido (%s).",
                 e.getMessage());
-          }
+            }
+        
+          return livros;
     }
 } 
