@@ -7,6 +7,8 @@ package projeto;
 
 import java.awt.GridLayout;
 import java.awt.List;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
@@ -22,53 +24,96 @@ public class JFrameMemoria extends javax.swing.JFrame {
 
     ArrayList<String> fotos = new ArrayList<String>();
     ArrayList<Integer> mr = new ArrayList();
+    ArrayList<Integer> escolherAleatorio = new ArrayList();
+    int meusPontos = 0;
+    int adversarioPontos = 0;
+    int meusErros = 0;
+    int adversarioErros = 0;
+
     JButton[][] mb = new JButton[6][6];
-    int cliques = 0;
+    String[][] caminhoImagens = new String[6][6];
+    int cliques = 0, i_prim = 0, j_prim = 0, i_sec = 0, j_sec = 0;
 
     /**
      * Creates new form JFrameVelha
      */
+    public int escolheFoto() {
+        Random gerador = new Random();
+        while (true) {
+            int num = gerador.nextInt(36);
+            if (escolherAleatorio.get(num) != -1) {
+                int v = escolherAleatorio.get(num);
+                escolherAleatorio.set(num, -1);
+                return v;
+            }
+        }
+    }
+
+    public void selecionaButton(int i, int j) {
+        cliques++;
+        if (cliques == 1){
+            i_prim = i;
+            j_prim = j;
+        }else if (cliques == 2){
+            i_sec = i;
+            j_sec = j;
+            if (i_prim == i_sec && j_prim == j_sec){
+                
+            }
+        }
+        mb[i][j].setIcon(new ImageIcon(getClass().getResource(caminhoImagens[i][j])));
+    }
+    
+    
+    public void ocultaIcones(){
+        
+    }
+
     public JFrameMemoria() {
         initComponents();
+
         for (int i = 0; i < 37; i++) {
             mr.add(0);
         }
+        for (int i = 0; i < 2; i++) {
+            for (int j = 1; j < 19; j++) {
+                escolherAleatorio.add(j);
+            }
+        }
+
         jPanel1.setLayout(new GridLayout(6, 6));
+
+        for (int i = 1; i < 19; i++) {
+            fotos.add(i + ".png");
+        }
+
         for (int i = 0; i < 6; i++) {
             for (int j = 0; j < 6; j++) {
                 mb[i][j] = new JButton();
-                mb[i][j].setText("Botão da linha " + (i + 1) + " coluna " + (j + 1));
-                //mb[i][j].addActionListener(this);
+                int num = escolheFoto() - 1;
+                caminhoImagens[i][j] = "./../img/" + fotos.get(num);
+                final int i1 = i;
+                final int j1 = j;
+                mb[i][j].addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent ae) {
+                        selecionaButton(i1, j1);
+                    }
+                });
                 jPanel1.add(mb[i][j]);
             }
         }
 
-        fotos.add("01.png");
-        fotos.add("02.png");
-        fotos.add("03.png");
-        fotos.add("04.png");
-        fotos.add("05.png");
-        fotos.add("06.png");
-        fotos.add("07.png");
-        fotos.add("08.png");
-        fotos.add("09.png");
-        fotos.add("10.png");
-        fotos.add("11.png");
-        fotos.add("12.png");
-        fotos.add("13.png");
-        fotos.add("14.png");
-        fotos.add("15.png");
-        fotos.add("16.png");
-        fotos.add("17.png");
-        fotos.add("18.png");
+        jPanel1.setSize(32767, 32767);
+
         ImageIcon icon = new ImageIcon(getClass().getResource("./../img/doc.png"));
         this.jLabel1.setIcon(icon);
         ImageIcon icon2 = new ImageIcon(getClass().getResource("./../img/marty.png"));
         this.jLabel2.setIcon(icon2);
-        this.jLabelP1Acertos.setText("0");
-        this.jLabelP2Acertos.setText("0");
-        this.jLabelP1Erros.setText("0");
-        this.jLabelP2Erros.setText("0");
+        this.jLabelP1Acertos.setText(String.valueOf(meusPontos));
+        this.jLabelP2Acertos.setText(String.valueOf(adversarioPontos));
+        this.jLabelP1Erros.setText(String.valueOf(meusErros));
+        this.jLabelP2Erros.setText(String.valueOf(adversarioErros));
         this.jLabelP1ImgResultado.setVisible(false);
         this.jLabelP2ImgResultado.setVisible(false);
         this.jLabelP1TextoResultado.setVisible(false);
@@ -79,7 +124,6 @@ public class JFrameMemoria extends javax.swing.JFrame {
     public void geraNovoJogo() {
         Collections.shuffle(fotos);
     }
-
 
     /**
      * This method is called from within the constructor to initialize the form.
