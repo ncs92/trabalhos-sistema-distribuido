@@ -18,6 +18,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -29,22 +30,22 @@ public class JFramePrincipal extends javax.swing.JFrame {
      * Creates new form JFramePrincipal
      */
     public static ArrayList<String> ranking = new ArrayList();
-    
+
     public JFramePrincipal() throws IOException, ClassNotFoundException {
         initComponents();
         solicitaRanking();
         atualizaLista();
     }
-    
-    public void atualizaLista(){
+
+    public void atualizaLista() {
         DefaultListModel listModel = new DefaultListModel();
-        for (String r: ranking){
+        for (String r : ranking) {
             listModel.addElement(r);
         }
         jList1.setModel(listModel);
     }
 
-    public static void solicitaRanking() throws IOException, ClassNotFoundException{
+    public static void solicitaRanking() throws IOException, ClassNotFoundException {
         Socket clientSocket = null; // socket do cliente
         DataOutputStream out;
         ObjectInputStream in;
@@ -57,13 +58,14 @@ public class JFramePrincipal extends javax.swing.JFrame {
             clientSocket = new Socket(serverAddr, serverPort);
             out = new DataOutputStream(clientSocket.getOutputStream());
             out.writeUTF("ranking");
-            in = new ObjectInputStream (clientSocket.getInputStream());            
-            ranking = (ArrayList) in.readObject();             
+            in = new ObjectInputStream(clientSocket.getInputStream());
+            ranking = (ArrayList) in.readObject();
 
         } catch (UnknownHostException ue) {
             System.out.println("Socket:" + ue.getMessage());
         }
     }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -142,16 +144,18 @@ public class JFramePrincipal extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseClicked
-        if (jButton1.isEnabled()){
-            JFrameMemoria frame = null; 
+        if (jButton1.isEnabled()) {
+            JFrameMemoria frame = null;
+            JogoClass jogo = new JogoClass();
             try {
                 frame = new JFrameMemoria();
             } catch (IOException ex) {
                 Logger.getLogger(JFramePrincipal.class.getName()).log(Level.SEVERE, null, ex);
             }
+
             frame.setVisible(true);
             jButton1.setEnabled(false);
-        }        
+        }
     }//GEN-LAST:event_jButton1MouseClicked
 
     /**

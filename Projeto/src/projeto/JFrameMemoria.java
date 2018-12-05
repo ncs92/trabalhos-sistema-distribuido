@@ -30,6 +30,7 @@ import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -40,22 +41,12 @@ public class JFrameMemoria extends javax.swing.JFrame {
     ArrayList<String> fotos = new ArrayList<String>();
     static JogoClass jogo = new JogoClass();
     int cliques = 0, i_prim = 0, j_prim = 0, i_sec = 0, j_sec = 0;
+    static String meuNome = "";
+    JogoClass jog = new JogoClass();
 
     /**
      * Creates new form JFrameVelha
      */
-    public int escolheFoto() {
-        Random gerador = new Random();
-        while (true) {
-            int num = gerador.nextInt(36);
-            if (jogo.escolherAleatorio.get(num) != -1) {
-                int v = jogo.escolherAleatorio.get(num);
-                jogo.escolherAleatorio.set(num, -1);
-                return v;
-            }
-        }
-    }
-
     public void setAcerto() {
         this.jLabelP1Acertos.setText(String.valueOf(jogo.p1Pontos));
     }
@@ -85,7 +76,11 @@ public class JFrameMemoria extends javax.swing.JFrame {
                 setErro();
                 jogo.p1Erros += 1;
             }
-            jogo.podeJogar = false;
+            if (jogo.p1.nome.equals(meuNome)) {
+                jogo.p1.podeJogar = false;
+            } else {
+                jogo.p2.podeJogar = false;
+            }
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -141,29 +136,17 @@ public class JFrameMemoria extends javax.swing.JFrame {
 
     public JFrameMemoria() throws IOException {
         initComponents();
-        iniciaServidor();
-        for (int i = 0; i < 2; i++) {
-            for (int j = 1; j < 19; j++) {
-                jogo.escolherAleatorio.add(j);
-            }
+        if (!jog.p1.nome.equals("")) {
+            jogo = jog;
         }
+        meuNome = nome;
+
+        iniciaServidor();
 
         jPanel1.setLayout(new GridLayout(6, 6));
 
-        for (int i = 1; i < 19; i++) {
-            fotos.add(i + ".png");
-        }
-
         for (int i = 0; i < 6; i++) {
             for (int j = 0; j < 6; j++) {
-                jogo.mr[i][j] = 0;
-                JButton jb = new JButton();
-                jb.setSize(64, 64);
-                jb.setMinimumSize(new Dimension(64, 64));
-                jogo.mb[i][j] = jb;
-                jogo.mb[i][j].setIcon(new ImageIcon(getClass().getResource("./../img/question.png")));
-                int num = escolheFoto() - 1;
-                jogo.caminhoImagens[i][j] = "./../img/" + fotos.get(num);
                 final int i1 = i;
                 final int j1 = j;
                 jogo.mb[i][j].addActionListener(new ActionListener() {
@@ -176,6 +159,7 @@ public class JFrameMemoria extends javax.swing.JFrame {
                         }
                     }
                 });
+
                 jPanel1.add(jogo.mb[i][j]);
             }
         }
@@ -186,6 +170,7 @@ public class JFrameMemoria extends javax.swing.JFrame {
         ImageIcon icon = new ImageIcon(getClass().getResource("./../img/doc.png"));
         this.jLabel1.setIcon(icon);
         ImageIcon icon2 = new ImageIcon(getClass().getResource("./../img/marty.png"));
+
         this.jLabel2.setIcon(icon2);
         this.jLabelP1Acertos.setText(String.valueOf(jogo.p1Pontos));
         this.jLabelP2Acertos.setText(String.valueOf(jogo.p2Pontos));
@@ -500,20 +485,43 @@ public class JFrameMemoria extends javax.swing.JFrame {
 
 class EscreverMensagem extends Thread {
 
-    ObjectOutputStream out;
+    ObjectOutputStream outObj;
+    DataOutputStream out;
+
     Socket socket;
 
     public EscreverMensagem(Socket socket) throws IOException {
         this.socket = socket;
-        this.out = new ObjectOutputStream(socket.getOutputStream());
+        this.outObj = new ObjectOutputStream(socket.getOutputStream());
+        this.out = new DataOutputStream(socket.getOutputStream());
     }
 
     public void run() {
-        
+
         try {
             while (true) {
-                if (JFrameMemoria.jogo.podeJogar == false) {
-                    out.writeObject(JFrameMemoria.jogo);
+                if (JFrameMemoria.jogo.p1.nome.equals("")) {
+                    do {
+                        String nome = JOptionPane.showInputDialog("Informe o nome:");
+                        out.writeUTF("play|" + nome);
+                        jogo = (JogoClass) inObj.readObject();
+                        String resposta = in.readUTF();
+                        if (!jogo.p1.nome.equals("")) {
+                            frame.jog = jogo;
+                            frame.nome = nome;
+                            break;
+                        } else if (resposta.equals("esperando")) {
+                            JOptionPane.showConfirmDialog(null, "Aguardando oponente...");
+                            JFrameMemoria.meuNome = nome;
+                            break;
+                        } else if (resposta.equals("contem")) {
+                            JOptionPane.showConfirmDialog(null, "Nome ja em uso, informe outro!");
+                        }
+
+                    } while (true);
+                } else if ((JFrameMemoria.jogo.p1.podeJogar == false && JFrameMemoria.jogo.p1.nome.equals(JFrameMemoria.meuNome))
+                        || (JFrameMemoria.jogo.p2.podeJogar == false && JFrameMemoria.jogo.p2.nome.equals(JFrameMemoria.meuNome))) {
+                    outObj.writeObject(JFrameMemoria.jogo);
                 }
             }
         } catch (EOFException eofe) {

@@ -4,13 +4,19 @@ package projeto;
  * TCPServer: Servidor para conexao TCP com Threads Descricao: Recebe uma
  * conexao, cria uma thread, recebe uma mensagem e finaliza a conexao
  */
+import java.awt.Dimension;
+import java.awt.event.ActionListener;
 import java.net.*;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 import java.util.Scanner;
+import java.util.logging.Level;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 
 class Usuario {
 
@@ -67,7 +73,7 @@ class Usuario {
 public class TCPServer {
 
     static ArrayList<String> ranking = new ArrayList();
-    static ArrayList<JogoClass> jogo = new ArrayList();
+    static ArrayList<JogoClass> jogos = new ArrayList();
     static ArrayList<Usuario> usuario = new ArrayList();
 
     public static void main(String args[]) {
@@ -106,6 +112,8 @@ class LerMensagemCliente extends Thread {
     DataOutputStream out;
     ObjectOutputStream objOut;
     Usuario u = new Usuario();
+    JogoClass jogo = new JogoClass();
+    ArrayList<String> fotos = new ArrayList<String>();
 
     public LerMensagemCliente(Socket socket) throws IOException {
         this.in = new DataInputStream(socket.getInputStream());
@@ -114,10 +122,42 @@ class LerMensagemCliente extends Thread {
         this.u.socket = socket;
     }
     
+      public int escolheFoto() {
+        Random gerador = new Random();
+        while (true) {
+            int num = gerador.nextInt(36);
+            if (jogo.escolherAleatorio.get(num) != -1) {
+                int v = jogo.escolherAleatorio.get(num);
+                jogo.escolherAleatorio.set(num, -1);
+                return v;
+            }
+        }
+    }
+    
     public void iniciaJogo(){
         for (int i = 0; i < 2; i++) {
             for (int j = 1; j < 19; j++) {
                 jogo.escolherAleatorio.add(j);
+            }
+        }
+        
+         for (int i = 1; i < 19; i++) {
+            fotos.add(i + ".png");
+        }
+         
+          for (int i = 0; i < 6; i++) {
+            for (int j = 0; j < 6; j++) {
+                jogo.mr[i][j] = 0;
+                JButton jb = new JButton();
+                jb.setSize(64, 64);
+                jb.setMinimumSize(new Dimension(64, 64));
+                jogo.mb[i][j] = jb;
+                jogo.mb[i][j].setIcon(new ImageIcon(getClass().getResource("./../img/question.png")));
+                int num = escolheFoto() - 1;
+                jogo.caminhoImagens[i][j] = "./../img/" + fotos.get(num);
+               
+              
+              
             }
         }
     }
@@ -141,8 +181,10 @@ class LerMensagemCliente extends Thread {
                         out.writeUTF("contem");
                     } else {
                         TCPServer.usuario.add(u);
+                        boolean achou = false;
                         for (Usuario user : TCPServer.usuario) {
                             if (!user.equals(u) && user.jogando == false) {
+                                achou = true;
                                 JogoClass jogo = new JogoClass();
                                 u.jogando = true;
                                 user.jogando = true;
@@ -156,6 +198,9 @@ class LerMensagemCliente extends Thread {
                                         .writeObject(jogo);
 
                             }
+                        }
+                        if(achou == false){
+                            out.writeUTF("esperando");
                         }
                     }
 
