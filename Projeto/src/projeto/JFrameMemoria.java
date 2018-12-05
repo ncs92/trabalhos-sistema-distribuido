@@ -5,13 +5,28 @@
  */
 package projeto;
 
+import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.List;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.EOFException;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
+import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -23,15 +38,7 @@ import javax.swing.JLabel;
 public class JFrameMemoria extends javax.swing.JFrame {
 
     ArrayList<String> fotos = new ArrayList<String>();
-    ArrayList<Integer> mr = new ArrayList();
-    ArrayList<Integer> escolherAleatorio = new ArrayList();
-    int meusPontos = 0;
-    int adversarioPontos = 0;
-    int meusErros = 0;
-    int adversarioErros = 0;
-
-    JButton[][] mb = new JButton[6][6];
-    String[][] caminhoImagens = new String[6][6];
+    static JogoClass jogo = new JogoClass();
     int cliques = 0, i_prim = 0, j_prim = 0, i_sec = 0, j_sec = 0;
 
     /**
@@ -41,43 +48,103 @@ public class JFrameMemoria extends javax.swing.JFrame {
         Random gerador = new Random();
         while (true) {
             int num = gerador.nextInt(36);
-            if (escolherAleatorio.get(num) != -1) {
-                int v = escolherAleatorio.get(num);
-                escolherAleatorio.set(num, -1);
+            if (jogo.escolherAleatorio.get(num) != -1) {
+                int v = jogo.escolherAleatorio.get(num);
+                jogo.escolherAleatorio.set(num, -1);
                 return v;
             }
         }
     }
 
-    public void selecionaButton(int i, int j) {
+    public void setAcerto() {
+        this.jLabelP1Acertos.setText(String.valueOf(jogo.p1Pontos));
+    }
+
+    public void setErro() {
+        this.jLabelP1Erros.setText(String.valueOf(jogo.p1Erros));
+    }
+
+    public void selecionaButton(int i, int j) throws InterruptedException {
         cliques++;
-        if (cliques == 1){
+        if (cliques == 1) {
             i_prim = i;
             j_prim = j;
-        }else if (cliques == 2){
+            jogo.mb[i][j].setIcon(new ImageIcon(getClass().getResource(jogo.caminhoImagens[i][j])));
+
+        } else if (cliques == 2) {
             i_sec = i;
             j_sec = j;
-            if (i_prim == i_sec && j_prim == j_sec){
-                
+            jogo.mb[i][j].setIcon(new ImageIcon(getClass().getResource(jogo.caminhoImagens[i][j])));
+
+            if (jogo.caminhoImagens[i_prim][j_prim].equals(jogo.caminhoImagens[i_sec][j_sec])) {
+                jogo.p1Pontos += 1;
+                setAcerto();
+                jogo.mr[i_prim][j_prim] = 1;
+                jogo.mr[i_sec][j_sec] = 1;
+            } else {
+                setErro();
+                jogo.p1Erros += 1;
+            }
+            jogo.podeJogar = false;
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(JFrameMemoria.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    enviaAoServidor();
+                    ocultaIcones();
+                }
+            }).start();
+            cliques = 0;
+        }
+    }
+
+    public void enviaAoServidor() {
+
+    }
+
+    public void ocultaIcones() {
+        for (int i = 0; i < 6; i++) {
+            for (int j = 0; j < 6; j++) {
+                if (jogo.mr[i][j] == 0) {
+                    jogo.mb[i][j].setIcon(new ImageIcon(getClass().getResource("./../img/question.png")));
+                    jogo.mb[i][j].setEnabled(false);
+                }
             }
         }
-        mb[i][j].setIcon(new ImageIcon(getClass().getResource(caminhoImagens[i][j])));
-    }
-    
-    
-    public void ocultaIcones(){
-        
     }
 
-    public JFrameMemoria() {
-        initComponents();
+    public void iniciaServidor() throws IOException {
+        Socket clientSocket = null; // socket do cliente
 
-        for (int i = 0; i < 37; i++) {
-            mr.add(0);
+        try {
+            /* Endereço e porta do servidor */
+            int serverPort = 6666;
+            InetAddress serverAddr = InetAddress.getByName("127.0.0.1");
+
+            /* conecta com o servidor */
+            clientSocket = new Socket(serverAddr, serverPort);
+
+            LerMensagem ler = new LerMensagem(clientSocket);
+            EscreverMensagem escrever = new EscreverMensagem(clientSocket);
+
+            escrever.start();
+            ler.start();
+
+        } catch (UnknownHostException ue) {
+            System.out.println("Socket:" + ue.getMessage());
         }
+    }
+
+    public JFrameMemoria() throws IOException {
+        initComponents();
+        iniciaServidor();
         for (int i = 0; i < 2; i++) {
             for (int j = 1; j < 19; j++) {
-                escolherAleatorio.add(j);
+                jogo.escolherAleatorio.add(j);
             }
         }
 
@@ -89,31 +156,41 @@ public class JFrameMemoria extends javax.swing.JFrame {
 
         for (int i = 0; i < 6; i++) {
             for (int j = 0; j < 6; j++) {
-                mb[i][j] = new JButton();
+                jogo.mr[i][j] = 0;
+                JButton jb = new JButton();
+                jb.setSize(64, 64);
+                jb.setMinimumSize(new Dimension(64, 64));
+                jogo.mb[i][j] = jb;
+                jogo.mb[i][j].setIcon(new ImageIcon(getClass().getResource("./../img/question.png")));
                 int num = escolheFoto() - 1;
-                caminhoImagens[i][j] = "./../img/" + fotos.get(num);
+                jogo.caminhoImagens[i][j] = "./../img/" + fotos.get(num);
                 final int i1 = i;
                 final int j1 = j;
-                mb[i][j].addActionListener(new ActionListener() {
+                jogo.mb[i][j].addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent ae) {
-                        selecionaButton(i1, j1);
+                        try {
+                            selecionaButton(i1, j1);
+                        } catch (InterruptedException ex) {
+                            Logger.getLogger(JFrameMemoria.class.getName()).log(Level.SEVERE, null, ex);
+                        }
                     }
                 });
-                jPanel1.add(mb[i][j]);
+                jPanel1.add(jogo.mb[i][j]);
             }
         }
 
         jPanel1.setSize(32767, 32767);
+        jPanel1.setMinimumSize(new Dimension(32767, 32767));
 
         ImageIcon icon = new ImageIcon(getClass().getResource("./../img/doc.png"));
         this.jLabel1.setIcon(icon);
         ImageIcon icon2 = new ImageIcon(getClass().getResource("./../img/marty.png"));
         this.jLabel2.setIcon(icon2);
-        this.jLabelP1Acertos.setText(String.valueOf(meusPontos));
-        this.jLabelP2Acertos.setText(String.valueOf(adversarioPontos));
-        this.jLabelP1Erros.setText(String.valueOf(meusErros));
-        this.jLabelP2Erros.setText(String.valueOf(adversarioErros));
+        this.jLabelP1Acertos.setText(String.valueOf(jogo.p1Pontos));
+        this.jLabelP2Acertos.setText(String.valueOf(jogo.p2Pontos));
+        this.jLabelP1Erros.setText(String.valueOf(jogo.p1Erros));
+        this.jLabelP2Erros.setText(String.valueOf(jogo.p2Erros));
         this.jLabelP1ImgResultado.setVisible(false);
         this.jLabelP2ImgResultado.setVisible(false);
         this.jLabelP1TextoResultado.setVisible(false);
@@ -389,7 +466,11 @@ public class JFrameMemoria extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new JFrameMemoria().setVisible(true);
+                try {
+                    new JFrameMemoria().setVisible(true);
+                } catch (IOException ex) {
+                    Logger.getLogger(JFrameMemoria.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         });
     }
@@ -415,4 +496,75 @@ public class JFrameMemoria extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     // End of variables declaration//GEN-END:variables
+}
+
+class EscreverMensagem extends Thread {
+
+    ObjectOutputStream out;
+    Socket socket;
+
+    public EscreverMensagem(Socket socket) throws IOException {
+        this.socket = socket;
+        this.out = new ObjectOutputStream(socket.getOutputStream());
+    }
+
+    public void run() {
+        
+        try {
+            while (true) {
+                if (JFrameMemoria.jogo.podeJogar == false) {
+                    out.writeObject(JFrameMemoria.jogo);
+                }
+            }
+        } catch (EOFException eofe) {
+            System.out.println("EOF:" + eofe.getMessage());
+        } catch (IOException ioe) {
+            System.out.println("IO:" + ioe.getMessage());
+        } finally {
+            try {
+                socket.close();
+                out.close();
+            } catch (IOException ioe) {
+                System.out.println("IO: " + ioe);;
+            }
+        }
+
+    }
+
+}
+
+class LerMensagem extends Thread {
+
+    ObjectInputStream in;
+    Socket socket;
+
+    public LerMensagem(Socket socket) throws IOException {
+        this.socket = socket;
+        this.in = new ObjectInputStream(socket.getInputStream());
+    }
+
+    public void run() {
+        Scanner reader = new Scanner(System.in);
+
+        try {
+            while (true) {
+                JFrameMemoria.jogo = (JogoClass) in.readObject();
+            }
+        } catch (EOFException eofe) {
+            System.out.println("EOF:" + eofe.getMessage());
+        } catch (IOException ioe) {
+            System.out.println("IO:" + ioe.getMessage());
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(LerMensagem.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                socket.close();
+                in.close();
+            } catch (IOException ioe) {
+                System.out.println("IO: " + ioe);;
+            }
+        }
+
+    }
+
 }

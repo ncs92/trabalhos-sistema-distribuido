@@ -143,7 +143,12 @@ public class JFramePrincipal extends javax.swing.JFrame {
 
     private void jButton1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseClicked
         if (jButton1.isEnabled()){
-            JFrameMemoria frame = new JFrameMemoria(); 
+            JFrameMemoria frame = null; 
+            try {
+                frame = new JFrameMemoria();
+            } catch (IOException ex) {
+                Logger.getLogger(JFramePrincipal.class.getName()).log(Level.SEVERE, null, ex);
+            }
             frame.setVisible(true);
             jButton1.setEnabled(false);
         }        

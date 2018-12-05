@@ -9,11 +9,67 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Objects;
 import java.util.Scanner;
 
+class Usuario {
+
+    boolean jogando = false;
+    String nome = "";
+    int pontos = 0;
+    int acertos = 0;
+    boolean podeJogar = false;
+    Socket socket;
+
+    public Usuario() {
+
+    }
+
+    public Usuario(Socket s) {
+        this.socket = s;
+    }
+
+    @Override
+    public String toString() {
+        return "Usuario{" + "jogando=" + jogando + ", nome=" + nome + '}';
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Usuario other = (Usuario) obj;
+        if (this.jogando != other.jogando) {
+            return false;
+        }
+        if (!Objects.equals(this.nome, other.nome)) {
+            return false;
+        }
+
+        return true;
+    }
+
+}
+
 public class TCPServer {
+
     static ArrayList<String> ranking = new ArrayList();
-    
+    static ArrayList<JogoClass> jogo = new ArrayList();
+    static ArrayList<Usuario> usuario = new ArrayList();
+
     public static void main(String args[]) {
         ranking.add("Lula 5 min");
         ranking.add("Maria 8 min");
@@ -32,7 +88,7 @@ public class TCPServer {
                 System.out.println("Cliente conectado ... Criando thread ...");
 
                 /* cria um thread para atender a conexao */
-                LerMensagemCliente ler = new LerMensagemCliente(clientSocket, ranking);
+                LerMensagemCliente ler = new LerMensagemCliente(clientSocket);
 
                 /* inicializa a thread */
                 ler.start();
@@ -49,15 +105,21 @@ class LerMensagemCliente extends Thread {
     DataInputStream in;
     DataOutputStream out;
     ObjectOutputStream objOut;
-    ArrayList<String> ranking = new ArrayList();
-    Socket socket;
+    Usuario u = new Usuario();
 
-    public LerMensagemCliente(Socket socket, ArrayList<String> ranking) throws IOException {
-        this.socket = socket;
+    public LerMensagemCliente(Socket socket) throws IOException {
         this.in = new DataInputStream(socket.getInputStream());
         this.out = new DataOutputStream(socket.getOutputStream());
         this.objOut = new ObjectOutputStream(socket.getOutputStream());
-        this.ranking = ranking;
+        this.u.socket = socket;
+    }
+    
+    public void iniciaJogo(){
+        for (int i = 0; i < 2; i++) {
+            for (int j = 1; j < 19; j++) {
+                jogo.escolherAleatorio.add(j);
+            }
+        }
     }
 
     public void run() {
@@ -70,43 +132,34 @@ class LerMensagemCliente extends Thread {
             while (true) {
                 buffer = in.readUTF();
                 System.out.println("\nMensagem recebida: " + buffer);
-                if (buffer.equals("ranking")){
-                    objOut.writeObject(ranking);
+                if (buffer.equals("ranking")) {
+                    objOut.writeObject(TCPServer.ranking);
+                } else if (buffer.equals("play")) {
+
+                    u.nome = buffer.split("|")[1];
+                    if (TCPServer.usuario.contains(u)) {
+                        out.writeUTF("contem");
+                    } else {
+                        TCPServer.usuario.add(u);
+                        for (Usuario user : TCPServer.usuario) {
+                            if (!user.equals(u) && user.jogando == false) {
+                                JogoClass jogo = new JogoClass();
+                                u.jogando = true;
+                                user.jogando = true;
+                                u.podeJogar = true;
+                                jogo.p1 = u;
+                                jogo.p2 = user;
+
+                                new ObjectOutputStream(jogo.p1.socket.getOutputStream())
+                                        .writeObject(jogo);
+                                new ObjectOutputStream(jogo.p2.socket.getOutputStream())
+                                        .writeObject(jogo);
+
+                            }
+                        }
+                    }
+
                 }
-                
-                
-                /*if (buffer.equals("TIME")) {
-                    retorno = String.valueOf(calendar.get(Calendar.HOUR) + ":" + calendar.get(Calendar.MINUTE) + ":" + calendar.get(Calendar.SECOND));
-                    out.writeUTF(retorno);
-                } else if (buffer.equals("DATE")) {
-                    retorno = String.valueOf(calendar.get(Calendar.DAY_OF_WEEK) + "/" + calendar.get(Calendar.MONTH) + "/" + calendar.get(Calendar.YEAR));
-                    out.writeUTF(retorno);
-                } else if (buffer.equals("FILES")) {
-                    File file = new File("C:\\Users\\Elaine\\Documents\\shared");
-                    File todosArquivos[] = file.listFiles();
-                    String listaNomes = "";
-
-                    for (int i = 0; i < todosArquivos.length; i++) {
-                        File arquivos = todosArquivos[i];
-                        listaNomes += arquivos.getName() + "\n";
-                    }
-                    out.writeUTF(listaNomes);
-                } else if (buffer.contains("DOWN")) {
-                    String nomeArq = buffer.split(" ")[1];
-
-                    File arq = new File("C:\\Users\\Elaine\\Documents\\shared\\" + nomeArq);
-                    out.writeUTF("tamArq " + arq.length() + " " + nomeArq);
-                    FileInputStream in = new FileInputStream(arq);
-                    byte[] bytesLidos = new byte[1024];
-                    int qtdLida;
-
-                    while ((qtdLida = in.read(bytesLidos)) != -1) {
-                        out.write(bytesLidos, 0, qtdLida);
-                    }
-                    
-                } else if (buffer.equals("EXIT")) {
-                    break;
-                }*/
             }
         } catch (EOFException eofe) {
             System.out.println("EOF:" + eofe.getMessage());
@@ -114,7 +167,7 @@ class LerMensagemCliente extends Thread {
             System.out.println("IO:" + ioe.getMessage());
         } finally {
             try {
-                socket.close();
+                this.u.socket.close();
                 in.close();
             } catch (IOException ioe) {
                 System.out.println("IO: " + ioe);;
