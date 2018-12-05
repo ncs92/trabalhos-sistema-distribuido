@@ -8,11 +8,16 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.UnknownHostException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
 import model.User;
 
 public class MainWindow extends javax.swing.JFrame implements ClientListener {
+    
+    private MulticastSocket multicast;
+    private DatagramSocket datagram;
     
     private String nick;
     
@@ -40,7 +45,23 @@ public class MainWindow extends javax.swing.JFrame implements ClientListener {
         return user;
     }
     
-    private void askNickName() {
+    private int findUserIndexByNick(String nick) {
+        for (int i = 0; i < users.getSize(); i++) {
+            User user = users.get(i);
+            if (user.nick.equals(nick)) {
+                return i;
+            }
+        }
+        
+        return -1;
+    }
+    
+    private User findUserByNick(String nick) {
+        int index = findUserIndexByNick(nick);
+        return index < 0 ? null : users.get(index);
+    }
+    
+    private void showNickInputDialog() {
         while (true) {
             String str = JOptionPane.showInputDialog("Digite seu apelido");
             if (str == null) {
@@ -60,7 +81,7 @@ public class MainWindow extends javax.swing.JFrame implements ClientListener {
         try {
             InetAddress group = InetAddress.getByName("225.1.2.3");
             
-            MulticastSocket multicast = new MulticastSocket(6789);
+            multicast = new MulticastSocket(6789);
             multicast.joinGroup(group);
             
             new DatagramClientWorker(multicast, this)
@@ -76,7 +97,7 @@ public class MainWindow extends javax.swing.JFrame implements ClientListener {
     private void startDatagramWorker() {
         try {
             
-            DatagramSocket datagram = new DatagramSocket(6799);
+            datagram = new DatagramSocket(6799);
             
             new DatagramClientWorker(datagram, this)
                     .start();
@@ -87,10 +108,40 @@ public class MainWindow extends javax.swing.JFrame implements ClientListener {
             ex.printStackTrace();
         }
     }
+    
+    private void sendJoinAckResponse(InetAddress address, int port) {
+        try {
+            String content = "JOINACK|" + nick;
+            byte[] buffer = content.getBytes();
+            
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, port);
+            datagram.send(packet);
+        } catch (IOException ex) {
+            System.err.println("Failed while sending JOINACK packet");
+            ex.printStackTrace();
+        }
+    }
 
     @Override
     public boolean onPacketReceived(DatagramPacket packet) {
         return true;
+    }
+    
+    @Override
+    public void onJoinReceived(InetAddress address, int port, String nick) {
+        System.out.println("onJoinReceived");
+        
+        if (findUserByNick(nick) == null) {
+            User user = new User();
+            user.address = address;
+            user.port = port;
+            user.nick = nick;
+
+            users.addElement(user);
+        }
+        
+        sendJoinAckResponse(address, port);
+        System.out.println("Sent JOINACK response packet");
     }
 
     @Override
@@ -103,6 +154,27 @@ public class MainWindow extends javax.swing.JFrame implements ClientListener {
         user.nick = nick;
         
         users.addElement(user);
+    }
+
+    @Override
+    public void onMessageReceived(String from, String text, boolean direct) {
+        System.out.println("onMessageReceived");
+        
+        String message = from + " disse" + (!direct ? ": " : " (privado): ") + text + "\n";
+        historyTextArea.append(message);
+    }
+
+    @Override
+    public void onLeaveReceived(String nick) {
+        System.out.println("onLeaveReceived");
+        
+        int index = findUserIndexByNick(nick);
+        if (index < 0) {
+            return;
+        }
+        
+        users.remove(index);
+        historyTextArea.append("** " + nick + " deixou o grupo de conversa");
     }
 
     /**
@@ -145,6 +217,11 @@ public class MainWindow extends javax.swing.JFrame implements ClientListener {
         messageTextField.setText("Ola pessoal");
 
         sendButton.setText("Enviar");
+        sendButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                sendButtonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -185,10 +262,35 @@ public class MainWindow extends javax.swing.JFrame implements ClientListener {
     }// </editor-fold>//GEN-END:initComponents
 
     private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
-        askNickName();
+        showNickInputDialog();
         startMulticastWorker();
         startDatagramWorker();
     }//GEN-LAST:event_formWindowOpened
+
+    private void sendButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendButtonActionPerformed
+        try {
+            int index = userList.getSelectedIndex();
+            User user = users.get(index);
+            
+            String text = messageTextField.getText()
+                    .trim();
+            
+            if ("".equals(text)) {
+                return;
+            }
+            
+            byte[] buffer = text.getBytes();
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, user.address, user.port);
+            
+            datagram.send(packet);
+            
+            historyTextArea.append("Eu disse para " + user.nick + ": " + text + "\n");
+            
+        } catch (IOException ex) {
+            System.err.println("Failed while sending chat message");
+            ex.printStackTrace();
+        }
+    }//GEN-LAST:event_sendButtonActionPerformed
 
     /**
      * @param args the command line arguments
