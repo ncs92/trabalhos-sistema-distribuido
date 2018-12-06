@@ -9,7 +9,10 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
 import model.User;
@@ -48,8 +51,8 @@ public class MainWindow extends javax.swing.JFrame implements ClientListener {
     
     private User createGroupUser() throws UnknownHostException {
         User user = new User();
-        user.address = InetAddress.getByName("225.1.2.3");
-        user.port = 6789;
+        user.address = InetAddress.getByName(MULTICAST_ADDRESS);
+        user.port = MULTICAST_PORT;
         user.nick = "Todos do grupo";
         
         return user;
@@ -87,6 +90,14 @@ public class MainWindow extends javax.swing.JFrame implements ClientListener {
         }
     }
     
+    private void sendJoinPacket(DatagramSocket datagram) throws IOException {
+        InetAddress address = InetAddress.getByName(MULTICAST_ADDRESS);
+        byte[] buffer = ("JOINACK|" + nick).getBytes();
+ 
+        DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, MULTICAST_PORT);
+        datagram.send(packet);
+    }
+    
     private void startMulticastWorker() {
         try {
             InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
@@ -96,6 +107,8 @@ public class MainWindow extends javax.swing.JFrame implements ClientListener {
             
             new DatagramClientWorker(multicast, this)
                     .start();
+            
+            
             
             System.out.println("Multicast worker started.");
             
@@ -111,6 +124,8 @@ public class MainWindow extends javax.swing.JFrame implements ClientListener {
             
             new DatagramClientWorker(datagram, this)
                     .start();
+            
+            sendJoinPacket(datagram);
             
             System.out.println("Datagram worker started.");
             
