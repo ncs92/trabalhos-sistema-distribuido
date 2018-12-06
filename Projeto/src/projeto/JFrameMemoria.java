@@ -5,115 +5,175 @@
  */
 package projeto;
 
+import java.awt.Dimension;
 import java.awt.GridLayout;
-import java.awt.List;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import server.Jogo;
 
 /**
  *
  * @author Elaine
  */
-public class JFrameMemoria extends javax.swing.JFrame {
+public final class JFrameMemoria extends javax.swing.JFrame {
 
     ArrayList<String> fotos = new ArrayList<String>();
-    ArrayList<Integer> mr = new ArrayList();
-    ArrayList<Integer> escolherAleatorio = new ArrayList();
-    int meusPontos = 0;
-    int adversarioPontos = 0;
-    int meusErros = 0;
-    int adversarioErros = 0;
-
-    JButton[][] mb = new JButton[6][6];
-    String[][] caminhoImagens = new String[6][6];
+    static Jogo jogo = new Jogo();
     int cliques = 0, i_prim = 0, j_prim = 0, i_sec = 0, j_sec = 0;
+    static String meuNome = "";
 
     /**
      * Creates new form JFrameVelha
      */
-    public int escolheFoto() {
-        Random gerador = new Random();
-        while (true) {
-            int num = gerador.nextInt(36);
-            if (escolherAleatorio.get(num) != -1) {
-                int v = escolherAleatorio.get(num);
-                escolherAleatorio.set(num, -1);
-                return v;
-            }
-        }
+    public void setAcerto() {
+        this.jLabelP1Acertos.setText(String.valueOf(jogo.jogador1.acertos));
     }
 
-    public void selecionaButton(int i, int j) {
+    public void setErro() {
+        this.jLabelP1Erros.setText(String.valueOf(jogo.jogador1.erros));
+    }
+
+    public void selecionaButton(int i, int j) throws InterruptedException {
         cliques++;
-        if (cliques == 1){
+        if (cliques == 1) {
             i_prim = i;
             j_prim = j;
-        }else if (cliques == 2){
+            jogo.mb[i][j].setIcon(new ImageIcon(getClass().getResource(jogo.caminhoImagens[i][j])));
+
+        } else if (cliques == 2) {
             i_sec = i;
             j_sec = j;
-            if (i_prim == i_sec && j_prim == j_sec){
-                
+            jogo.mb[i][j].setIcon(new ImageIcon(getClass().getResource(jogo.caminhoImagens[i][j])));
+
+            if (jogo.caminhoImagens[i_prim][j_prim].equals(jogo.caminhoImagens[i_sec][j_sec])) {
+                if (jogo.jogador1.nome.equals(meuNome)) {
+                    jogo.jogador1.acertos += 1;
+                } else {
+                    jogo.jogador2.acertos += 1;
+                }
+
+                setAcerto();
+                jogo.mr[i_prim][j_prim] = 1;
+                jogo.mr[i_sec][j_sec] = 1;
+            } else {
+                setErro();
+                // jogo.p1Erros += 1;
             }
-        }
-        mb[i][j].setIcon(new ImageIcon(getClass().getResource(caminhoImagens[i][j])));
-    }
-    
-    
-    public void ocultaIcones(){
-        
-    }
-
-    public JFrameMemoria() {
-        initComponents();
-
-        for (int i = 0; i < 37; i++) {
-            mr.add(0);
-        }
-        for (int i = 0; i < 2; i++) {
-            for (int j = 1; j < 19; j++) {
-                escolherAleatorio.add(j);
+            if (jogo.jogador1.nome.equals(meuNome)) {
+                jogo.jogador1.jogando = false;
+            } else {
+                jogo.jogador2.jogando = false;
             }
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(JFrameMemoria.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    ocultaIcones();
+                }
+            }).start();
+            cliques = 0;
         }
+    }
 
-        jPanel1.setLayout(new GridLayout(6, 6));
-
-        for (int i = 1; i < 19; i++) {
-            fotos.add(i + ".png");
-        }
-
+    public void ocultaIcones() {
         for (int i = 0; i < 6; i++) {
             for (int j = 0; j < 6; j++) {
-                mb[i][j] = new JButton();
-                int num = escolheFoto() - 1;
-                caminhoImagens[i][j] = "./../img/" + fotos.get(num);
-                final int i1 = i;
-                final int j1 = j;
-                mb[i][j].addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent ae) {
-                        selecionaButton(i1, j1);
-                    }
-                });
-                jPanel1.add(mb[i][j]);
+                if (jogo.mr[i][j] == 0) {
+                    jogo.mb[i][j].setIcon(new ImageIcon(getClass().getResource("./../img/question.png")));
+                    jogo.mb[i][j].setEnabled(false);
+                }
             }
         }
+    }
 
+    public void iniciaConexao() throws IOException {
+        try {
+            /* Endereço e porta do servidor */
+            int serverPort = 8090;
+            InetAddress serverAddr = InetAddress.getByName("127.0.0.1");
+
+            /* conecta com o servidor */
+            Socket clientSocket = new Socket(serverAddr, serverPort);
+
+            // new LerMensagem(clientSocket)
+            //    .start();
+            new EscreverMensagemTexto(clientSocket, this.meuNome)
+                    .start();
+
+//            new EscreverMensagemObjeto(clientSocket)
+//                    .start();
+
+        } catch (UnknownHostException ue) {
+            System.out.println("Socket:" + ue.getMessage());
+        }
+    }
+
+    public JFrameMemoria() throws IOException {
+        initComponents();
+
+//        iniciaConexao();
+
+        jPanel1.setLayout(new GridLayout(6, 6));
+        for (int i = 0; i < 6; i++) {
+            for (int j = 0; j < 6; j++) {
+                final int i1 = i;
+                final int j1 = j;
+                jogo.mb[i][j].setIcon(new ImageIcon(getClass().getResource("./../img/question.png")));
+                if(jogo.jogador1 == null || jogo.jogador2 == null){
+                    jogo.mb[i][j].setEnabled(false);
+                }else if((jogo.jogador1.nome.equals(meuNome) && jogo.jogador1.jogando == true)
+                        || jogo.jogador2.nome.equals(meuNome) && jogo.jogador2.jogando == true){
+                    jogo.mb[i][j].setEnabled(true);
+                    
+                }
+                jogo.mb[i][j].addActionListener(new ActionListener() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent ae) {
+                        try {
+                            selecionaButton(i1, j1);
+                        } catch (InterruptedException ex) {
+                            Logger.getLogger(JFrameMemoria.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                });
+
+                jPanel1.add(jogo.mb[i][j]);
+            }
+        };
         jPanel1.setSize(32767, 32767);
+        jPanel1.setMinimumSize(new Dimension(32767, 32767));
 
         ImageIcon icon = new ImageIcon(getClass().getResource("./../img/doc.png"));
         this.jLabel1.setIcon(icon);
         ImageIcon icon2 = new ImageIcon(getClass().getResource("./../img/marty.png"));
+
         this.jLabel2.setIcon(icon2);
-        this.jLabelP1Acertos.setText(String.valueOf(meusPontos));
-        this.jLabelP2Acertos.setText(String.valueOf(adversarioPontos));
-        this.jLabelP1Erros.setText(String.valueOf(meusErros));
-        this.jLabelP2Erros.setText(String.valueOf(adversarioErros));
+        if (jogo.jogador1 != null && jogo.jogador2 != null) {
+            this.jLabelP1Acertos.setText(String.valueOf(jogo.jogador1.acertos));
+            this.jLabelP2Acertos.setText(String.valueOf(jogo.jogador2.acertos));
+            this.jLabelP1Erros.setText(String.valueOf(jogo.jogador1.erros));
+            this.jLabelP2Erros.setText(String.valueOf(jogo.jogador2.erros));
+        }
+
         this.jLabelP1ImgResultado.setVisible(false);
         this.jLabelP2ImgResultado.setVisible(false);
         this.jLabelP1TextoResultado.setVisible(false);
@@ -157,6 +217,14 @@ public class JFrameMemoria extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setMinimumSize(new java.awt.Dimension(800, 487));
         setSize(new java.awt.Dimension(800, 487));
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowActivated(java.awt.event.WindowEvent evt) {
+                formWindowActivated(evt);
+            }
+            public void windowOpened(java.awt.event.WindowEvent evt) {
+                formWindowOpened(evt);
+            }
+        });
 
         jPanel1.setBackground(new java.awt.Color(255, 255, 255));
 
@@ -358,6 +426,28 @@ public class JFrameMemoria extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void formWindowActivated(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowActivated
+        
+    }//GEN-LAST:event_formWindowActivated
+
+    private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
+        try {
+            while (true) {
+                String nome = JOptionPane.showInputDialog(null, "Informe seu nome");
+                if (nome != null && !"".equals(nome)) {
+                    this.meuNome = nome;
+                    break;
+                }
+            }
+            
+            iniciaConexao();
+            
+        } catch (IOException ex) {
+            System.err.println("Falha ao abrir a conexão");
+            ex.printStackTrace();
+        }
+    }//GEN-LAST:event_formWindowOpened
+
     /**
      * @param args the command line arguments
      */
@@ -389,7 +479,11 @@ public class JFrameMemoria extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new JFrameMemoria().setVisible(true);
+                try {
+                    new JFrameMemoria().setVisible(true);
+                } catch (IOException ex) {
+                    Logger.getLogger(JFrameMemoria.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         });
     }
@@ -415,4 +509,86 @@ public class JFrameMemoria extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     // End of variables declaration//GEN-END:variables
+}
+
+class EscreverMensagemTexto extends Thread {
+
+    private String nome;
+
+    DataInputStream in;
+    DataOutputStream out;
+
+    Socket socket;
+
+    public EscreverMensagemTexto(Socket socket, String nome) throws IOException {
+        this.socket = socket;
+
+        this.in = new DataInputStream(socket.getInputStream());
+        this.out = new DataOutputStream(socket.getOutputStream());
+        
+        this.nome = nome;
+    }
+
+    @Override
+    public void run() {
+        try {
+            while (true) {
+                out.writeUTF("play|" + this.nome);
+
+                String buffer = in.readUTF();
+                System.out.println("buffer : " + buffer);
+                
+                if ("contem".equals(buffer)) {
+                    JOptionPane.showMessageDialog(null, "Nome já está sendo utilizado");
+                    this.nome = null;
+
+                } else if ("esperando".equals(buffer)) {
+                    JOptionPane.showConfirmDialog(null, "Aguardando oponente...");
+                    JFrameMemoria.meuNome = nome;
+                    break;
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+    }
+
+}
+
+class EscreverMensagemObjeto extends Thread {
+
+    ObjectInputStream in;
+    ObjectOutputStream out;
+
+    Socket socket;
+
+    public EscreverMensagemObjeto(Socket socket) throws IOException {
+        this.socket = socket;
+
+        this.in = new ObjectInputStream(socket.getInputStream());
+        this.out = new ObjectOutputStream(socket.getOutputStream());
+    }
+
+    @Override
+    public void run() {
+        try {
+            while (true) {
+                JFrameMemoria.jogo = (Jogo) in.readObject();
+
+                if (JFrameMemoria.jogo.jogador1.nome.equals(JFrameMemoria.meuNome) && JFrameMemoria.jogo.jogador1.jogando == false) {
+                    JFrameMemoria.jogo.jogador2.jogando = true;
+                    this.out.writeObject(JFrameMemoria.jogo);
+                } else if (JFrameMemoria.jogo.jogador2.nome.equals(JFrameMemoria.meuNome) && JFrameMemoria.jogo.jogador2.jogando == false) {
+                    JFrameMemoria.jogo.jogador1.jogando = true;
+                    this.out.writeObject(JFrameMemoria.jogo);
+                }
+
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+    }
+
 }
