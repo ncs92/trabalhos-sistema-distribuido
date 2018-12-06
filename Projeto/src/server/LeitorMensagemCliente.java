@@ -13,7 +13,7 @@ class LeitorMensagemCliente extends Thread {
 
     DataInputStream in;
     DataOutputStream out;
-    ObjectOutputStream objOut;
+    // ObjectOutputStream objOut;
     Usuario u = new Usuario();
 
     public LeitorMensagemCliente(Servidor servidor, Socket cliente) throws IOException {
@@ -21,7 +21,7 @@ class LeitorMensagemCliente extends Thread {
         
         this.in = new DataInputStream(cliente.getInputStream());
         this.out = new DataOutputStream(cliente.getOutputStream());
-        this.objOut = new ObjectOutputStream(cliente.getOutputStream());
+        // this.objOut = new ObjectOutputStream(cliente.getOutputStream());
         this.u.socket = cliente;
         
         usuario = new Usuario();

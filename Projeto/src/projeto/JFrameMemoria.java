@@ -11,7 +11,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -20,7 +19,6 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ImageIcon;
@@ -117,11 +115,11 @@ public final class JFrameMemoria extends javax.swing.JFrame {
 
             // new LerMensagem(clientSocket)
             //    .start();
-            new EscreverMensagemTexto(clientSocket)
+            new EscreverMensagemTexto(clientSocket, this.meuNome)
                     .start();
 
-            new EscreverMensagemObjeto(clientSocket)
-                    .start();
+//            new EscreverMensagemObjeto(clientSocket)
+//                    .start();
 
         } catch (UnknownHostException ue) {
             System.out.println("Socket:" + ue.getMessage());
@@ -131,7 +129,7 @@ public final class JFrameMemoria extends javax.swing.JFrame {
     public JFrameMemoria() throws IOException {
         initComponents();
 
-        iniciaConexao();
+//        iniciaConexao();
 
         jPanel1.setLayout(new GridLayout(6, 6));
         for (int i = 0; i < 6; i++) {
@@ -222,6 +220,9 @@ public final class JFrameMemoria extends javax.swing.JFrame {
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowActivated(java.awt.event.WindowEvent evt) {
                 formWindowActivated(evt);
+            }
+            public void windowOpened(java.awt.event.WindowEvent evt) {
+                formWindowOpened(evt);
             }
         });
 
@@ -426,8 +427,26 @@ public final class JFrameMemoria extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void formWindowActivated(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowActivated
-
+        
     }//GEN-LAST:event_formWindowActivated
+
+    private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
+        try {
+            while (true) {
+                String nome = JOptionPane.showInputDialog(null, "Informe seu nome");
+                if (nome != null && !"".equals(nome)) {
+                    this.meuNome = nome;
+                    break;
+                }
+            }
+            
+            iniciaConexao();
+            
+        } catch (IOException ex) {
+            System.err.println("Falha ao abrir a conexão");
+            ex.printStackTrace();
+        }
+    }//GEN-LAST:event_formWindowOpened
 
     /**
      * @param args the command line arguments
@@ -501,31 +520,24 @@ class EscreverMensagemTexto extends Thread {
 
     Socket socket;
 
-    public EscreverMensagemTexto(Socket socket) throws IOException {
+    public EscreverMensagemTexto(Socket socket, String nome) throws IOException {
         this.socket = socket;
 
         this.in = new DataInputStream(socket.getInputStream());
         this.out = new DataOutputStream(socket.getOutputStream());
+        
+        this.nome = nome;
     }
 
     @Override
     public void run() {
         try {
             while (true) {
-                System.out.println("Dentro do while");
-                if (this.nome == null || "".equals(this.nome)) {
-                    String nome = JOptionPane.showInputDialog(null, "Informe o nome");
-                    if (nome == null || "".equals(nome)) {
-                        continue;
-                    }
-
-                    this.nome = nome;
-                }
-
                 out.writeUTF("play|" + this.nome);
 
                 String buffer = in.readUTF();
-                System.out.println(buffer);
+                System.out.println("buffer : " + buffer);
+                
                 if ("contem".equals(buffer)) {
                     JOptionPane.showMessageDialog(null, "Nome já está sendo utilizado");
                     this.nome = null;

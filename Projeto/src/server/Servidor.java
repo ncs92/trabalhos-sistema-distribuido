@@ -21,8 +21,6 @@ public class Servidor {
             System.err.println("Falha ao iniciar o servidor");
             ex.printStackTrace();
         }
-        
-        
     }
     
     public Servidor(int porta) throws IOException {
@@ -36,7 +34,7 @@ public class Servidor {
         new LeitorMensagemCliente(this, cliente)
                 .start();
         
-        new EnviarJogo(this, cliente)
-                .start();
+//        new EnviarJogo(this, cliente)
+//                .start();
     }
 }
