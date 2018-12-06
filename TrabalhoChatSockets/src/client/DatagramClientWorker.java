@@ -38,7 +38,7 @@ public class DatagramClientWorker extends Thread {
         String content = new String(packet.getData(), 0, packet.getLength())
                 .trim();
         
-        System.out.println("Received message: " + content);
+        System.out.println("UDP message received: " + content);
         
         if (content.startsWith("JOINACK")) {
             String nick = extractOnlyNick(content);

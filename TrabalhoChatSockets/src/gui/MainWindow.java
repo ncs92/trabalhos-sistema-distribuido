@@ -2,22 +2,32 @@ package gui;
 
 import client.ClientListener;
 import client.DatagramClientWorker;
+import client.SocketClientWorker;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
 import model.User;
 
 public class MainWindow extends javax.swing.JFrame implements ClientListener {
     
+    private static final String UDP_ADDRESS = "127.0.0.1";
+    private static final int DATAGRAM_PORT = 6799;
+    
+    private static final String MULTICAST_ADDRESS = "225.1.2.3";
+    private static final int MULTICAST_PORT = 6789;
+    
+    private static final String TCP_ADDRESS = "127.0.0.1";
+    private static final int TCP_PORT = 9090;
+    
     private MulticastSocket multicast;
     private DatagramSocket datagram;
+    private Socket socket;
     
     private String nick;
     
@@ -79,9 +89,9 @@ public class MainWindow extends javax.swing.JFrame implements ClientListener {
     
     private void startMulticastWorker() {
         try {
-            InetAddress group = InetAddress.getByName("225.1.2.3");
+            InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
             
-            multicast = new MulticastSocket(6789);
+            multicast = new MulticastSocket(MULTICAST_PORT);
             multicast.joinGroup(group);
             
             new DatagramClientWorker(multicast, this)
@@ -97,12 +107,28 @@ public class MainWindow extends javax.swing.JFrame implements ClientListener {
     private void startDatagramWorker() {
         try {
             
-            datagram = new DatagramSocket(6799);
+            datagram = new DatagramSocket(DATAGRAM_PORT);
             
             new DatagramClientWorker(datagram, this)
                     .start();
             
             System.out.println("Datagram worker started.");
+            
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+    
+    private void startSocketWorker() {
+        try {
+            InetAddress address = InetAddress.getByName(TCP_ADDRESS);
+            
+            socket = new Socket(address, TCP_PORT);
+            
+            new SocketClientWorker(socket, this)
+                    .start();
+            
+            System.out.println("TPC worker started.");
             
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -265,6 +291,7 @@ public class MainWindow extends javax.swing.JFrame implements ClientListener {
         showNickInputDialog();
         startMulticastWorker();
         startDatagramWorker();
+        startSocketWorker();
     }//GEN-LAST:event_formWindowOpened
 
     private void sendButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendButtonActionPerformed

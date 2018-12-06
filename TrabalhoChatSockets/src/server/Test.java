@@ -1,21 +1,28 @@
 package server;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.Socket;
 
 public class Test {
     
     public static void main(String[] args) throws IOException {
         DatagramSocket datagram = new DatagramSocket();
+        Socket socket = new Socket(InetAddress.getByName("127.0.0.1"), 9090);
         
-        sendJoinAck(datagram, "Elaine");
+        new DataOutputStream(socket.getOutputStream())
+            .writeUTF("Testing TCP connection");
+        
+        // sendJoinAck(datagram, "Elaine");
         // sendMulticastMessage(datagram);
         // sendDirectMessage(datagram);
         // sendLeave(datagram, "Elaine");
         
         datagram.close();
+        socket.close();
     }
     
     public static void sendJoinAck(DatagramSocket socket, String nick) throws IOException {
