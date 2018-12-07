@@ -10,7 +10,9 @@ s.listen(10)
 con, cliente = s.accept()
 print ('Conectado por', cliente)
 msg = con.recv(1024)
-print('mensagem enviada: ', g.ParseFromString(base64.b64decode(msg).decode('utf-8')))
+aux = msg.decode('utf-8')
+print(aux)
+#print('mensagem enviada: ', g.ParseFromString(base64.b64decode(msg).decode('utf-8')))
 print ('Finalizando conexao do cliente', cliente)
     
 

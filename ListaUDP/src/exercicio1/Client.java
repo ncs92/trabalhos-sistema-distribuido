@@ -53,7 +53,7 @@ public class Client implements Reader.Listener {
         String command = "";
         do {
             command = JOptionPane.showInputDialog(message);
-        } while (!list.contains(command));
+        } while (!list.contains(command) || !command.equals("EXIT"));
 
         return command;
     }

@@ -9,6 +9,7 @@ import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import representacaoexternaBuffer.GerenciamentoOuterClass.Gerenciamento;
@@ -37,7 +38,7 @@ public class Client {
             System.out.println(g.toString());
             Socket clientSocket = new Socket(InetAddress.getByName("127.0.0.1"), 5555);
             ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
-            out.write(g.toString().getBytes());
+            out.write(StandardCharsets.UTF_8.encode(g.toString()).array());
             out.flush();
             System.out.println("Client sends Object.");
             clientSocket.close();

@@ -33,8 +33,5 @@ public class Servidor {
         
         new LeitorMensagemCliente(this, cliente)
                 .start();
-        
-//        new EnviarJogo(this, cliente)
-//                .start();
     }
 }
