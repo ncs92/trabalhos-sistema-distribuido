@@ -15,7 +15,7 @@ public class Servidor {
     
     public static void main(String[] args) {
         try {
-            Servidor servidor = new Servidor(8090);
+            Servidor servidor = new Servidor(6365);
             servidor.iniciar();
         } catch (IOException ex) {
             System.err.println("Falha ao iniciar o servidor");

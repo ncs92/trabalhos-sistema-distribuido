@@ -1,12 +1,14 @@
 package server;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import javax.swing.JButton;
 
-public class Jogo {
+public class Jogo implements Serializable {
+private static final long serialVersionUID = 1L;
     
     ArrayList<String> fotos = new ArrayList<String>();
     public List<Integer> escolherAleatorio = new ArrayList();
