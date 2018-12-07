@@ -13,7 +13,8 @@ import javax.swing.JOptionPane;
 
 public class Client implements Reader.Listener {
     
-    private static final int PORT = 5555;
+    private static final int PORT_ENVIO = 5556;
+    private static final int PORT_RECEBIMENTO = 5555;
     
     private static final String[] VALID_COMMANDS = new String[]{
         "ADDNICK",
@@ -53,7 +54,7 @@ public class Client implements Reader.Listener {
         String command = "";
         do {
             command = JOptionPane.showInputDialog(message);
-        } while (!list.contains(command) || !command.equals("EXIT"));
+        } while (!list.contains(command));
 
         return command;
     }
@@ -162,7 +163,7 @@ public class Client implements Reader.Listener {
                 System.out.println("Solicitado adiçao do NICK: " + nick);
             }
 
-            DatagramPacket pacote = new DatagramPacket(buffer, buffer.length, ip, PORT);
+            DatagramPacket pacote = new DatagramPacket(buffer, buffer.length, ip, PORT_ENVIO);
             socket.send(pacote);
         }
     }
@@ -178,7 +179,7 @@ public class Client implements Reader.Listener {
     public static void main(String[] args) throws SocketException, UnknownHostException, IOException {
         
         String nick = JOptionPane.showInputDialog("Informe o seu NICK");
-        DatagramSocket socket = new DatagramSocket(PORT);
+        DatagramSocket socket = new DatagramSocket(PORT_RECEBIMENTO);
         
         Client client = new Client(nick, socket);
         client.start();
