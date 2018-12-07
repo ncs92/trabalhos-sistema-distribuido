@@ -9,10 +9,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.Socket;
-import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
 import model.User;
@@ -125,8 +122,6 @@ public class MainWindow extends javax.swing.JFrame implements ClientListener {
             new DatagramClientWorker(datagram, this)
                     .start();
             
-            sendJoinPacket(datagram);
-            
             System.out.println("Datagram worker started.");
             
         } catch (IOException ex) {
@@ -175,7 +170,7 @@ public class MainWindow extends javax.swing.JFrame implements ClientListener {
         if (findUserByNick(nick) == null) {
             User user = new User();
             user.address = address;
-            user.port = port;
+            user.port = DATAGRAM_PORT;
             user.nick = nick;
 
             users.addElement(user);
@@ -188,10 +183,16 @@ public class MainWindow extends javax.swing.JFrame implements ClientListener {
     @Override
     public void onJoinAckReceived(InetAddress address, int port, String nick) {
         System.out.println("onJoinAckReceived");
+        System.out.println(address.toString());
+        System.out.println(port);
+        
+        if (this.nick.equals(nick)) {
+            return;
+        }
         
         User user = new User();
         user.address = address;
-        user.port = port;
+        user.port = MULTICAST_PORT;
         user.nick = nick;
         
         users.addElement(user);
@@ -307,6 +308,13 @@ public class MainWindow extends javax.swing.JFrame implements ClientListener {
         startMulticastWorker();
         startDatagramWorker();
         startSocketWorker();
+        
+        try {
+            sendJoinPacket(datagram);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            System.exit(1);
+        }
     }//GEN-LAST:event_formWindowOpened
 
     private void sendButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendButtonActionPerformed
