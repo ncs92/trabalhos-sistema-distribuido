@@ -170,7 +170,7 @@ public class MainWindow extends javax.swing.JFrame implements ClientListener {
         if (findUserByNick(nick) == null) {
             User user = new User();
             user.address = address;
-            user.port = port;
+            user.port = DATAGRAM_PORT;
             user.nick = nick;
 
             users.addElement(user);
@@ -183,10 +183,16 @@ public class MainWindow extends javax.swing.JFrame implements ClientListener {
     @Override
     public void onJoinAckReceived(InetAddress address, int port, String nick) {
         System.out.println("onJoinAckReceived");
+        System.out.println(address.toString());
+        System.out.println(port);
+        
+        if (this.nick.equals(nick)) {
+            return;
+        }
         
         User user = new User();
         user.address = address;
-        user.port = port;
+        user.port = MULTICAST_PORT;
         user.nick = nick;
         
         users.addElement(user);
