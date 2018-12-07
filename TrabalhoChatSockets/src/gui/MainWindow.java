@@ -9,10 +9,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.Socket;
-import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
 import model.User;
@@ -124,8 +121,6 @@ public class MainWindow extends javax.swing.JFrame implements ClientListener {
             
             new DatagramClientWorker(datagram, this)
                     .start();
-            
-            sendJoinPacket(datagram);
             
             System.out.println("Datagram worker started.");
             
@@ -307,6 +302,13 @@ public class MainWindow extends javax.swing.JFrame implements ClientListener {
         startMulticastWorker();
         startDatagramWorker();
         startSocketWorker();
+        
+        try {
+            sendJoinPacket(datagram);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            System.exit(1);
+        }
     }//GEN-LAST:event_formWindowOpened
 
     private void sendButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sendButtonActionPerformed
