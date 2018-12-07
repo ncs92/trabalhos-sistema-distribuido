@@ -5,10 +5,13 @@
  */
 package server;
 
+import java.io.Serializable;
+
 /**
  *
  * @author Elaine
  */
-public class Mensagem {
+public class Mensagem implements Serializable {
+private static final long serialVersionUID = 1L;
     public String texto;
 }

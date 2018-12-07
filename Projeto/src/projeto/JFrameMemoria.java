@@ -24,6 +24,7 @@ import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import server.Jogo;
+import server.Mensagem;
 
 /**
  *
@@ -32,7 +33,7 @@ import server.Jogo;
 public final class JFrameMemoria extends javax.swing.JFrame {
 
     ArrayList<String> fotos = new ArrayList<String>();
-    static Jogo jogo = new Jogo();
+    Jogo jogo = null;
     int cliques = 0, i_prim = 0, j_prim = 0, i_sec = 0, j_sec = 0;
     static String meuNome = "";
 
@@ -48,6 +49,11 @@ public final class JFrameMemoria extends javax.swing.JFrame {
     }
 
     public void selecionaButton(int i, int j) throws InterruptedException {
+        if ((jogo.jogador1.nome.equals(meuNome) && jogo.jogador1.jogando == true)
+                || jogo.jogador2.nome.equals(meuNome) && jogo.jogador2.jogando == true) {
+            jogo.mb[i][j].setEnabled(true);
+
+        }
         cliques++;
         if (cliques == 1) {
             i_prim = i;
@@ -98,7 +104,6 @@ public final class JFrameMemoria extends javax.swing.JFrame {
             for (int j = 0; j < 6; j++) {
                 if (jogo.mr[i][j] == 0) {
                     jogo.mb[i][j].setIcon(new ImageIcon(getClass().getResource("./../img/question.png")));
-                    jogo.mb[i][j].setEnabled(false);
                 }
             }
         }
@@ -107,58 +112,56 @@ public final class JFrameMemoria extends javax.swing.JFrame {
     public void iniciaConexao() throws IOException {
         try {
             /* Endereço e porta do servidor */
-            int serverPort = 8090;
+            int serverPort = 6365;
             InetAddress serverAddr = InetAddress.getByName("127.0.0.1");
 
             /* conecta com o servidor */
             Socket clientSocket = new Socket(serverAddr, serverPort);
 
-            // new LerMensagem(clientSocket)
-            //    .start();
-            new EscreverMensagemTexto(clientSocket, this.meuNome)
+            new EscreverMensagemObjeto(clientSocket, meuNome, this)
                     .start();
-
-//            new EscreverMensagemObjeto(clientSocket)
-//                    .start();
-
         } catch (UnknownHostException ue) {
             System.out.println("Socket:" + ue.getMessage());
         }
     }
 
-    public JFrameMemoria() throws IOException {
-        initComponents();
-
-//        iniciaConexao();
-
-        jPanel1.setLayout(new GridLayout(6, 6));
+    public void iniciaParametrosJogo() {
         for (int i = 0; i < 6; i++) {
             for (int j = 0; j < 6; j++) {
                 final int i1 = i;
                 final int j1 = j;
                 jogo.mb[i][j].setIcon(new ImageIcon(getClass().getResource("./../img/question.png")));
-                if(jogo.jogador1 == null || jogo.jogador2 == null){
+                if (jogo.jogador1 == null || jogo.jogador2 == null) {
                     jogo.mb[i][j].setEnabled(false);
-                }else if((jogo.jogador1.nome.equals(meuNome) && jogo.jogador1.jogando == true)
-                        || jogo.jogador2.nome.equals(meuNome) && jogo.jogador2.jogando == true){
+                } else if ((jogo.jogador1.nome.equals(meuNome) && jogo.jogador1.jogando == true)
+                        || jogo.jogador2.nome.equals(meuNome) && jogo.jogador2.jogando == true) {
                     jogo.mb[i][j].setEnabled(true);
-                    
-                }
-                jogo.mb[i][j].addActionListener(new ActionListener() {
 
-                    @Override
-                    public void actionPerformed(ActionEvent ae) {
-                        try {
-                            selecionaButton(i1, j1);
-                        } catch (InterruptedException ex) {
-                            Logger.getLogger(JFrameMemoria.class.getName()).log(Level.SEVERE, null, ex);
-                        }
+                }
+                jogo.mb[i][j].addActionListener((ActionEvent ae) -> {
+                    try {
+                        selecionaButton(i1, j1);
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(JFrameMemoria.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 });
 
                 jPanel1.add(jogo.mb[i][j]);
             }
         };
+        if (jogo.jogador1 != null && jogo.jogador2 != null) {
+            this.jLabelP1Acertos.setText(String.valueOf(jogo.jogador1.acertos));
+            this.jLabelP2Acertos.setText(String.valueOf(jogo.jogador2.acertos));
+            this.jLabelP1Erros.setText(String.valueOf(jogo.jogador1.erros));
+            this.jLabelP2Erros.setText(String.valueOf(jogo.jogador2.erros));
+        }
+    }
+
+    public JFrameMemoria() throws IOException {
+        initComponents();
+
+        jPanel1.setLayout(new GridLayout(6, 6));
+
         jPanel1.setSize(32767, 32767);
         jPanel1.setMinimumSize(new Dimension(32767, 32767));
 
@@ -167,12 +170,6 @@ public final class JFrameMemoria extends javax.swing.JFrame {
         ImageIcon icon2 = new ImageIcon(getClass().getResource("./../img/marty.png"));
 
         this.jLabel2.setIcon(icon2);
-        if (jogo.jogador1 != null && jogo.jogador2 != null) {
-            this.jLabelP1Acertos.setText(String.valueOf(jogo.jogador1.acertos));
-            this.jLabelP2Acertos.setText(String.valueOf(jogo.jogador2.acertos));
-            this.jLabelP1Erros.setText(String.valueOf(jogo.jogador1.erros));
-            this.jLabelP2Erros.setText(String.valueOf(jogo.jogador2.erros));
-        }
 
         this.jLabelP1ImgResultado.setVisible(false);
         this.jLabelP2ImgResultado.setVisible(false);
@@ -427,7 +424,7 @@ public final class JFrameMemoria extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void formWindowActivated(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowActivated
-        
+
     }//GEN-LAST:event_formWindowActivated
 
     private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
@@ -439,9 +436,9 @@ public final class JFrameMemoria extends javax.swing.JFrame {
                     break;
                 }
             }
-            
+
             iniciaConexao();
-            
+
         } catch (IOException ex) {
             System.err.println("Falha ao abrir a conexão");
             ex.printStackTrace();
@@ -511,84 +508,74 @@ public final class JFrameMemoria extends javax.swing.JFrame {
     // End of variables declaration//GEN-END:variables
 }
 
-class EscreverMensagemTexto extends Thread {
-
-    private String nome;
-
-    DataInputStream in;
-    DataOutputStream out;
-
-    Socket socket;
-
-    public EscreverMensagemTexto(Socket socket, String nome) throws IOException {
-        this.socket = socket;
-
-        this.in = new DataInputStream(socket.getInputStream());
-        this.out = new DataOutputStream(socket.getOutputStream());
-        
-        this.nome = nome;
-    }
-
-    @Override
-    public void run() {
-        try {
-            while (true) {
-                out.writeUTF("play|" + this.nome);
-
-                String buffer = in.readUTF();
-                System.out.println("buffer : " + buffer);
-                
-                if ("contem".equals(buffer)) {
-                    JOptionPane.showMessageDialog(null, "Nome já está sendo utilizado");
-                    this.nome = null;
-
-                } else if ("esperando".equals(buffer)) {
-                    JOptionPane.showConfirmDialog(null, "Aguardando oponente...");
-                    JFrameMemoria.meuNome = nome;
-                    break;
-                }
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-
-    }
-
-}
-
 class EscreverMensagemObjeto extends Thread {
 
-    ObjectInputStream in;
     ObjectOutputStream out;
+    ObjectInputStream in;    
+    String nome;
+    JFrameMemoria jframe;
+    int primeiro = 0;
 
     Socket socket;
 
-    public EscreverMensagemObjeto(Socket socket) throws IOException {
+    public EscreverMensagemObjeto(Socket socket, String nome, JFrameMemoria jframe) throws IOException {
         this.socket = socket;
-
-        this.in = new ObjectInputStream(socket.getInputStream());
+        this.nome = nome;
         this.out = new ObjectOutputStream(socket.getOutputStream());
+        this.in = new ObjectInputStream(socket.getInputStream());        
+        this.jframe = jframe;
     }
 
     @Override
     public void run() {
+
         try {
             while (true) {
-                JFrameMemoria.jogo = (Jogo) in.readObject();
+                if (jframe.jogo == null) {
+                    System.out.println("Entrou mensagem");
+                    Mensagem me = new Mensagem();
+                    me.texto = "play|" + this.nome;
+                    out.writeObject(me);
+                    
+                    Object obj = in.readObject();
+                    Mensagem m = (Mensagem) obj;
+                    String buffer = m.texto;
+                    
+                    System.out.println("buffer : " + buffer);
 
-                if (JFrameMemoria.jogo.jogador1.nome.equals(JFrameMemoria.meuNome) && JFrameMemoria.jogo.jogador1.jogando == false) {
-                    JFrameMemoria.jogo.jogador2.jogando = true;
-                    this.out.writeObject(JFrameMemoria.jogo);
-                } else if (JFrameMemoria.jogo.jogador2.nome.equals(JFrameMemoria.meuNome) && JFrameMemoria.jogo.jogador2.jogando == false) {
-                    JFrameMemoria.jogo.jogador1.jogando = true;
-                    this.out.writeObject(JFrameMemoria.jogo);
+                    if ("contem".equals(buffer)) {
+                        JOptionPane.showMessageDialog(null, "Nome já está sendo utilizado");
+                        this.nome = null;
+
+                    } else if ("esperando".equals(buffer)) {
+                        JOptionPane.showConfirmDialog(null, "Aguardando oponente...");
+                        JFrameMemoria.meuNome = nome;
+                        break;
+                    }
+                } else {
+                    System.out.println("Entrou jogo");
+                    if (primeiro == 0) {
+                        jframe.jogo = (Jogo) in.readObject();
+                        jframe.iniciaParametrosJogo();
+                    }
+                    System.out.println("JOGO" + jframe.jogo);
+                    primeiro++;
+                    jframe.jogo = (Jogo) in.readObject();
+
+                    if (jframe.jogo.jogador1.nome.equals(jframe.meuNome) && jframe.jogo.jogador1.jogando == false) {
+                        jframe.jogo.jogador2.jogando = true;
+                        this.out.writeObject(jframe.jogo);
+                    } else if (jframe.jogo.jogador2.nome.equals(jframe.meuNome) && jframe.jogo.jogador2.jogando == false) {
+                        jframe.jogo.jogador1.jogando = true;
+                        this.out.writeObject(jframe.jogo);
+                    }
                 }
-
             }
-        } catch (Exception ex) {
-            ex.printStackTrace();
+
+        } catch (IOException ex) {
+            Logger.getLogger(EscreverMensagemObjeto.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(EscreverMensagemObjeto.class.getName()).log(Level.SEVERE, null, ex);
         }
-
     }
-
 }
