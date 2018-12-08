@@ -8,9 +8,6 @@ package projeto;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -154,6 +151,7 @@ public final class JFrameMemoria extends javax.swing.JFrame {
                 jPanel1.add(jogo.mb[i][j]);
             }
         };
+        
         if (jogo.jogador1 != null && jogo.jogador2 != null) {
             this.jLabelP1Acertos.setText(String.valueOf(jogo.jogador1.acertos));
             this.jLabelP2Acertos.setText(String.valueOf(jogo.jogador2.acertos));

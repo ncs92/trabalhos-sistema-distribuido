@@ -1,7 +1,6 @@
 package server;
 
 import java.io.Serializable;
-import java.net.Socket;
 
 public class Usuario implements Serializable {
 
