@@ -79,8 +79,10 @@ public final class JFrameMemoria extends javax.swing.JFrame {
             }
             if (jogo.jogador1.nome.equals(meuNome)) {
                 jogo.jogador1.jogando = false;
+                jogo.jogador2.jogando = true;
             } else {
                 jogo.jogador2.jogando = false;
+                jogo.jogador1.jogando = true;
             }
             new Thread(new Runnable() {
                 @Override
@@ -531,13 +533,7 @@ class EscreverMensagemObjeto extends Thread {
     }
 
     public void enviaJogo() throws IOException {
-        if (jframe.jogo.jogador1.nome.equals(jframe.meuNome) && jframe.jogo.jogador1.jogando == false) {
-            jframe.jogo.jogador2.jogando = true;
-            this.out.writeObject(jframe.jogo);
-        } else if (jframe.jogo.jogador2.nome.equals(jframe.meuNome) && jframe.jogo.jogador2.jogando == false) {
-            jframe.jogo.jogador1.jogando = true;
-            this.out.writeObject(jframe.jogo);
-        }
+        this.out.writeObject(jframe.jogo);      
     }
 
     @Override
