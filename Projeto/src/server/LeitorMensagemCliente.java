@@ -91,8 +91,11 @@ class LeitorMensagemCliente extends Thread {
                         } else if (existeOutroJogador()) {
                             System.out.println("INICIAR JOGO");
                             Jogo jogo = iniciaNovoJogo(nome);
-                            enviarObjetoJogo(servidor.socketJogador1, jogo, this.out);
-                            enviarObjetoJogo(servidor.socketJogador2, jogo, this.out);
+                            if (jogo.jogador1.jogando) {
+                                enviarObjetoJogo(servidor.socketJogador1, jogo, this.out);
+                            } else {
+                                enviarObjetoJogo(servidor.socketJogador2, jogo, this.out);
+                            }
 
                         } else {
                             men.texto = "esperando";
@@ -108,8 +111,11 @@ class LeitorMensagemCliente extends Thread {
                 } else {
                     System.out.println("Entrou jogo");
                     Jogo jog = (Jogo) recebido;
-                    enviarObjetoJogo(servidor.socketJogador1, jog, this.out);
-                    enviarObjetoJogo(servidor.socketJogador2, jog, this.out);
+                    if (jog.jogador1.jogando) {
+                        enviarObjetoJogo(servidor.socketJogador1, jog, this.out);
+                    } else {
+                        enviarObjetoJogo(servidor.socketJogador2, jog, this.out);
+                    }
                 }
             }
         } catch (Exception ex) {
@@ -129,6 +135,5 @@ class LeitorMensagemCliente extends Thread {
             ex.printStackTrace();
         }
     }
-
 
 }

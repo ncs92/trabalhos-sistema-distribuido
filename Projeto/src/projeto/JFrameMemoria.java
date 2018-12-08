@@ -556,6 +556,7 @@ class EscreverMensagemObjeto extends Thread {
                     }
                 } else {
                     System.out.println("Entrou jogo");
+                    System.out.println((Jogo) obj);
                     if (primeiro == 0) {
                         jframe.jogo = (Jogo) obj;
                         jframe.iniciaParametrosJogo();
