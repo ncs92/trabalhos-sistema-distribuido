@@ -18,6 +18,7 @@ import java.util.Collections;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
+import static projeto.JFrameMemoria.meuNome;
 import server.Jogo;
 import server.Mensagem;
 
@@ -26,28 +27,28 @@ import server.Mensagem;
  * @author Elaine
  */
 public final class JFrameMemoria extends javax.swing.JFrame implements Runnable {
-    
+
     private static final String SERVER_HOST = "127.0.0.1";
     private static final int SERVER_PORT = 6365;
-    
+
     private Socket socket;
     private ObjectInputStream in;
     private ObjectOutputStream out;
-    
+
     private String nome;
     private boolean jogando = false;
     private int acertos = 0;
     private int erros = 0;
-    
+
     private boolean iniciado = false;
     private Jogo jogo;
-    
+
     private JButton[][] mb = new JButton[6][6];
-    
-    
+
+
 
     ArrayList<String> fotos = new ArrayList<String>();
-    
+
     int cliques = 0, i_prim = 0, j_prim = 0, i_sec = 0, j_sec = 0;
     static String meuNome = "";
     // EscreverMensagemObjeto escrever;
@@ -68,7 +69,7 @@ public final class JFrameMemoria extends javax.swing.JFrame implements Runnable 
                 || jogo.jogador2.nome.equals(meuNome) && jogo.jogador2.jogando == true) {
             mb[i][j].setEnabled(true);
         }
-        
+
         cliques++;
         if (cliques == 1) {
             i_prim = i;
@@ -94,12 +95,12 @@ public final class JFrameMemoria extends javax.swing.JFrame implements Runnable 
                 setErro();
                 // jogo.p1Erros += 1;
             }
-            
+
             atualizaInterface();
             cliques = 0;
         }
     }
-    
+
     private void ocultaIcones() {
         for (int i = 0; i < 6; i++) {
             for (int j = 0; j < 6; j++) {
@@ -109,7 +110,7 @@ public final class JFrameMemoria extends javax.swing.JFrame implements Runnable 
             }
         }
     }
-    
+
     private void atualizaInterface() {
         Runnable r = new Runnable() {
             @Override
@@ -118,7 +119,7 @@ public final class JFrameMemoria extends javax.swing.JFrame implements Runnable 
                     Thread.sleep(1000);
                     ocultaIcones();
                     out.writeObject(jogo);
-                    
+
                 } catch (InterruptedException ex) {
                     ex.printStackTrace();
                 } catch (IOException ex) {
@@ -126,16 +127,16 @@ public final class JFrameMemoria extends javax.swing.JFrame implements Runnable 
                 }
             }
         };
-        
+
         new Thread(r).start();
     }
-    
+
     private void iniciaNovoJogo(Jogo jogo) {
         jPanel1.setLayout(new GridLayout(6, 6));
 
         jPanel1.setSize(32767, 32767);
         jPanel1.setMinimumSize(new Dimension(32767, 32767));
-        
+
         for (int i = 0; i < 6; i++) {
             for (int j = 0; j < 6; j++) {
                 final int i1 = i;
@@ -148,14 +149,14 @@ public final class JFrameMemoria extends javax.swing.JFrame implements Runnable 
                     mb[i][j].setEnabled(true);
 
                 }
-                
+
                 mb[i][j].addActionListener((ActionEvent ae) -> {
                     selecionaButton(i1, j1);
                 });
-                
+
                 if (this.nome.equals(jogo.jogador1.nome)) {
                     mb[i][j].setEnabled(jogo.jogador1.jogando);
-                    
+
                 } else if (this.nome.equals(jogo.jogador2.nome)) {
                     mb[i][j].setEnabled(jogo.jogador2.jogando);
                 }
@@ -163,29 +164,29 @@ public final class JFrameMemoria extends javax.swing.JFrame implements Runnable 
                 jPanel1.add(mb[i][j]);
             }
         }
-        
+
         if (jogo.jogador1 != null && jogo.jogador2 != null) {
             this.jLabelP1Acertos.setText(String.valueOf(jogo.jogador1.acertos));
             this.jLabelP1Erros.setText(String.valueOf(jogo.jogador1.erros));
-            
+
             this.jLabelP2Acertos.setText(String.valueOf(jogo.jogador2.acertos));
             this.jLabelP2Erros.setText(String.valueOf(jogo.jogador2.erros));
         }
     }
-    
+
     private void atualizaJogo(Jogo jogo) {
         for (int i = 0; i < 6; i++) {
             for (int j = 0; j < 6; j++) {
                 final int i1 = i;
-                final int j1 = j;                
-                
+                final int j1 = j;
+
                 if (this.nome.equals(jogo.jogador1.nome)) {
                     mb[i][j].setEnabled(jogo.jogador1.jogando);
-                    
+
                 } else if (this.nome.equals(jogo.jogador2.nome)) {
                     mb[i][j].setEnabled(jogo.jogador2.jogando);
                 }
-                
+
                 if (jogo.mr[i][j] == 1) {
                     mb[i][j].setIcon(new ImageIcon(getClass().getResource(jogo.ci[i][j])));
                     mb[i][j].setEnabled(false);
@@ -194,11 +195,11 @@ public final class JFrameMemoria extends javax.swing.JFrame implements Runnable 
                 }
             }
         }
-        
+
         if (jogo.jogador1 != null && jogo.jogador2 != null) {
             this.jLabelP1Acertos.setText(String.valueOf(jogo.jogador1.acertos));
             this.jLabelP1Erros.setText(String.valueOf(jogo.jogador1.erros));
-            
+
             this.jLabelP2Acertos.setText(String.valueOf(jogo.jogador2.acertos));
             this.jLabelP2Erros.setText(String.valueOf(jogo.jogador2.erros));
         }
@@ -206,11 +207,11 @@ public final class JFrameMemoria extends javax.swing.JFrame implements Runnable 
 
     public JFrameMemoria() throws IOException {
         initComponents();
-        
+
         socket = new Socket(InetAddress.getByName(SERVER_HOST), SERVER_PORT);
         out = new ObjectOutputStream(socket.getOutputStream());
         in = new ObjectInputStream(socket.getInputStream());
-        
+
         new Thread(this).start();
 
         ImageIcon icon = new ImageIcon(getClass().getResource("./../img/doc.png"));
@@ -476,7 +477,7 @@ public final class JFrameMemoria extends javax.swing.JFrame implements Runnable 
                 break;
             }
         }
-        
+
         try {
             registraUsuario();
             System.out.println("Registrando usuario...");
@@ -494,7 +495,7 @@ public final class JFrameMemoria extends javax.swing.JFrame implements Runnable 
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
          */
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
@@ -526,28 +527,28 @@ public final class JFrameMemoria extends javax.swing.JFrame implements Runnable 
             }
         });
     }
-    
+
     private void registraUsuario() throws IOException, ClassNotFoundException {
         Mensagem me = new Mensagem("play|" + this.nome);
         out.writeObject(me);
     }
-    
+
     private void ler() throws IOException, ClassNotFoundException {
         Object objeto = in.readObject();
         System.out.println("Novo objeto recebido");
-        
+
         if (objeto instanceof Mensagem) {
             // Mensagem mensagem = (Mensagem) objeto;
             JOptionPane.showMessageDialog(null, "Aguardando outro jogador...");
-            
+
         } else if (objeto instanceof Jogo) {
             Jogo jogo = (Jogo) objeto;
             System.out.println(jogo.acabou);
             System.out.println(jogo.jogador1);
             System.out.println(jogo.jogador2);
-            
+
             this.jogo = jogo;
-            
+
             if (!iniciado) {
                 iniciaNovoJogo(this.jogo);
                 iniciado = true;
@@ -563,10 +564,10 @@ public final class JFrameMemoria extends javax.swing.JFrame implements Runnable 
             while (true) {
                 ler();
             }
-            
+
         } catch (IOException ex) {
             ex.printStackTrace();
-            
+
         } catch (ClassNotFoundException ex) {
             ex.printStackTrace();
         }
@@ -594,3 +595,90 @@ public final class JFrameMemoria extends javax.swing.JFrame implements Runnable 
     private javax.swing.JPanel jPanel3;
     // End of variables declaration//GEN-END:variables
 }
+<<<<<<< HEAD:Projeto/src/gui/JFrameMemoria.java
+=======
+
+class EscreverMensagemObjeto extends Thread {
+
+    ObjectOutputStream out;
+    ObjectInputStream in;
+    String nome;
+    JFrameMemoria jframe;
+    int primeiro = 0;
+
+    Socket socket;
+
+    public EscreverMensagemObjeto(Socket socket, String nome, JFrameMemoria jframe) throws IOException {
+        this.socket = socket;
+        this.nome = nome;
+        this.out = new ObjectOutputStream(socket.getOutputStream());
+        this.in = new ObjectInputStream(socket.getInputStream());
+        this.jframe = jframe;
+    }
+
+    public void enviaJogo() throws IOException {
+        this.out.writeObject(jframe.jogo);
+    }
+
+    @Override
+    public void run() {
+        System.out.println("ENTROU RUNNNNNNN");
+        try {
+            while (true) {
+                if (jframe.jogo == null || this.nome == null) {
+                    System.out.println("Entrou mensagem");
+                    Mensagem me = new Mensagem();
+                    me.texto = "play;" + this.nome;
+                    out.writeObject(me);
+                }
+                Object obj = in.readObject();
+
+                if (obj instanceof Mensagem) {
+                    Mensagem m = (Mensagem) obj;
+                    String buffer = m.texto;
+
+                    System.out.println("buffer : " + buffer);
+
+                    if ("contem".equals(buffer)) {
+                        JOptionPane.showMessageDialog(null, "Nome já está sendo utilizado");
+                        this.nome = null;
+
+                    } else if ("esperando".equals(buffer)) {
+                        JOptionPane.showMessageDialog(null, "Aguardando oponente...");
+                        JFrameMemoria.meuNome = nome;
+                        break;
+                    }
+                } else {
+                    System.out.println("Entrou jogo");
+
+                    if (primeiro == 0) {
+                        jframe.jogo = (Jogo) obj;
+                        jframe.iniciaParametrosJogo();
+                    }
+                    System.out.println("JOGO" + jframe.jogo);
+                    primeiro++;
+                    jframe.jogo = (Jogo) obj;
+                    for (int i = 0; i < 6; i++) {
+                        for (int j = 0; j < 6; j++) {
+                            if ((jframe.jogo.jogador1.nome.equals(meuNome) && jframe.jogo.jogador1.jogando == true)
+                                    || jframe.jogo.jogador2.nome.equals(meuNome) && jframe.jogo.jogador2.jogando == true) {
+                                jframe.jogo.mb[i][j].setEnabled(true);
+                            } else {
+                                jframe.jogo.mb[i][j].setEnabled(false);
+                            }
+                        }
+                    }
+
+                }
+
+            }
+
+        } catch (IOException ex) {
+            Logger.getLogger(EscreverMensagemObjeto.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+
+            Logger.getLogger(EscreverMensagemObjeto.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+}
+>>>>>>> master:Projeto/src/projeto/JFrameMemoria.java
