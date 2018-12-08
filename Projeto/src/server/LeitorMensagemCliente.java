@@ -60,7 +60,7 @@ class LeitorMensagemCliente extends Thread {
 
     public static void enviarObjetoJogo(Socket socket, Jogo jogo, ObjectOutputStream out) {
         try {
-            out = new ObjectOutputStream(socket.getOutputStream());
+            out = new AppendingObjectOutputStream(socket.getOutputStream());
             out.writeObject(jogo);
         } catch (IOException ex) {
             System.err.println("Falha ao enviar o jogo para os clientes");
