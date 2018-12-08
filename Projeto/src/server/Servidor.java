@@ -1,18 +1,23 @@
 package server;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class Servidor {
-    
+public class Servidor implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     ServerSocket socket;
-    
+
     public Usuario jogador1;
     public Usuario jogador2;
-    
+    public Socket socketJogador1;
+    public Socket socketJogador2;
+
     public Jogo jogo;
-    
+
     public static void main(String[] args) {
         try {
             Servidor servidor = new Servidor(6365);
@@ -22,16 +27,24 @@ public class Servidor {
             ex.printStackTrace();
         }
     }
-    
+
     public Servidor(int porta) throws IOException {
         socket = new ServerSocket(porta);
     }
-    
+
     private void iniciar() throws IOException {
-        System.out.println("Servidor aguardando conexões...");
-        Socket cliente = socket.accept();
-        
-        new LeitorMensagemCliente(this, cliente)
-                .start();
+        while (true) {
+            System.out.println("Servidor aguardando conexões...");
+            Socket cliente = socket.accept();
+            if(jogador1 == null){
+                socketJogador1 = cliente;
+            }else{
+                socketJogador2 = cliente;
+            }
+
+            new LeitorMensagemCliente(this, cliente)
+                    .start();
+        }
+
     }
 }

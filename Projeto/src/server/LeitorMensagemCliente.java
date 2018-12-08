@@ -1,17 +1,14 @@
 package server;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import static server.EnviarJogo.enviarObjetoJogo;
 
 class LeitorMensagemCliente extends Thread {
 
     private Servidor servidor;
-    private final Usuario usuario;
+    private final Usuario usuario = new Usuario();
 
     ObjectOutputStream out;
     ObjectInputStream in;
@@ -20,22 +17,22 @@ class LeitorMensagemCliente extends Thread {
 
     public LeitorMensagemCliente(Servidor servidor, Socket cliente) throws IOException {
         this.servidor = servidor;
-        
+
         this.out = new ObjectOutputStream(cliente.getOutputStream());
         this.in = new ObjectInputStream(cliente.getInputStream());
-        
-        // this.objOut = new ObjectOutputStream(cliente.getOutputStream());
-        this.u.socket = cliente;
 
-        usuario = new Usuario();
-        usuario.socket = cliente;
     }
 
     private boolean euExistoNoServidor(String nome) {
-        boolean euSouJogador1 = servidor.jogador1 != null && servidor.jogador1.nome.equals(nome);
-        boolean euSouJogador2 = servidor.jogador2 != null && servidor.jogador2.nome.equals(nome);
+        if (servidor.jogador1 == null && servidor.jogador2 == null) {
+            return false;
+        } else {
+            boolean euSouJogador2 = servidor.jogador1 == null && servidor.jogador2.nome.equals(nome);
+            boolean euSouJogador1 = servidor.jogador2 == null && servidor.jogador1.nome.equals(nome);
 
-        return euSouJogador1 || euSouJogador2;
+            return euSouJogador1 || euSouJogador2;
+        }
+
     }
 
     private boolean existeOutroJogador() {
@@ -61,10 +58,10 @@ class LeitorMensagemCliente extends Thread {
         return servidor.jogo;
     }
 
-    public static void enviarObjetoJogo(Socket socket, Jogo jogo) {
+    public static void enviarObjetoJogo(Socket socket, Jogo jogo, ObjectOutputStream out) {
         try {
-            new ObjectOutputStream(socket.getOutputStream())
-                    .writeObject(jogo);
+            out = new ObjectOutputStream(socket.getOutputStream());
+            out.writeObject(jogo);
         } catch (IOException ex) {
             System.err.println("Falha ao enviar o jogo para os clientes");
             ex.printStackTrace();
@@ -75,7 +72,45 @@ class LeitorMensagemCliente extends Thread {
     public void run() {
         try {
             while (true) {
-                ler();
+                Object recebido = in.readObject();
+                System.out.println("Objeto recebido" + recebido);
+
+                if (recebido instanceof Mensagem) {
+                    Mensagem men = (Mensagem) recebido;
+                    System.out.println("Mensagem recebida pelo servidor: " + men.texto);
+                    String buffer = String.valueOf(men.texto);
+
+                    if (buffer.startsWith("play")) {
+                        String[] palavras = buffer.split(";");
+                        String nome = palavras[1];
+                        if (euExistoNoServidor(nome)) {
+                            System.out.println("EU EXISTO");
+                            men.texto = "contem";
+                            out.writeObject(men);
+
+                        } else if (existeOutroJogador()) {
+                            System.out.println("INICIAR JOGO");
+                            Jogo jogo = iniciaNovoJogo(nome);
+                            enviarObjetoJogo(servidor.socketJogador1, jogo, this.out);
+                            enviarObjetoJogo(servidor.socketJogador2, jogo, this.out);
+
+                        } else {
+                            men.texto = "esperando";
+                            usuario.nome = nome;
+                            servidor.jogador1 = usuario;
+                            out.writeObject(men);
+                        }
+
+                    } else if (buffer.equals("ranking")) {
+                        System.out.println("Tem que implementar o ranking");
+                    }
+
+                } else {
+                    System.out.println("Entrou jogo");
+                    Jogo jog = (Jogo) recebido;
+                    enviarObjetoJogo(servidor.socketJogador1, jog, this.out);
+                    enviarObjetoJogo(servidor.socketJogador2, jog, this.out);
+                }
             }
         } catch (Exception ex) {
             System.err.println("Falha durante a conexão");
@@ -85,50 +120,8 @@ class LeitorMensagemCliente extends Thread {
         }
     }
 
-    private void ler() throws IOException, ClassNotFoundException {
-        Object recebido = in.readObject();
-        System.out.println("Objeto recebido" + recebido);
-
-        if (recebido instanceof Mensagem) {
-            System.out.println("Entrou mensagem");
-            Mensagem men = (Mensagem) recebido;
-            String buffer = men.texto;
-
-            if (buffer.startsWith("play")) {
-                String nome = buffer.split("|")[1];
-                if (euExistoNoServidor(nome)) {
-                    men.texto = "contem";
-                    out.writeObject(men);
-
-                } else if (existeOutroJogador()) {
-                    System.out.println("INICIAR JOGO");
-                    Jogo jogo = iniciaNovoJogo(nome);
-                    enviarObjetoJogo(jogo.jogador1.socket, jogo);
-                    enviarObjetoJogo(jogo.jogador2.socket, jogo);
-
-                } else {               
-                    men.texto = "esperando";
-                    usuario.nome = nome;
-                    servidor.jogador1 = usuario;
-                    out.writeObject(men);
-                }
-
-            } else if (buffer.equals("ranking")) {
-                System.out.println("Tem que implementar o ranking");
-            }
-
-        } else {
-            System.out.println("Entrou jogo");
-            Jogo jog = (Jogo) recebido;
-            enviarObjetoJogo(servidor.jogador1.socket, jog);
-            enviarObjetoJogo(servidor.jogador2.socket, jog);
-        }
-
-    }
-
     private void finalizaConexao() {
         try {
-            usuario.socket.close();
             in.close();
             out.close();
         } catch (IOException ex) {
@@ -137,11 +130,5 @@ class LeitorMensagemCliente extends Thread {
         }
     }
 
-    public void EnviarJogo(Servidor servidor, Socket cliente) throws IOException {
-        this.servidor = servidor;
-
-        this.in = new ObjectInputStream(cliente.getInputStream());
-        this.out = new ObjectOutputStream(cliente.getOutputStream());
-    }
 
 }

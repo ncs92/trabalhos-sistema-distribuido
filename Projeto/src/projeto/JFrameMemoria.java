@@ -126,6 +126,11 @@ public final class JFrameMemoria extends javax.swing.JFrame {
     }
 
     public void iniciaParametrosJogo() {
+        jPanel1.setLayout(new GridLayout(6, 6));
+
+        jPanel1.setSize(32767, 32767);
+        jPanel1.setMinimumSize(new Dimension(32767, 32767));
+
         for (int i = 0; i < 6; i++) {
             for (int j = 0; j < 6; j++) {
                 final int i1 = i;
@@ -159,11 +164,6 @@ public final class JFrameMemoria extends javax.swing.JFrame {
 
     public JFrameMemoria() throws IOException {
         initComponents();
-
-        jPanel1.setLayout(new GridLayout(6, 6));
-
-        jPanel1.setSize(32767, 32767);
-        jPanel1.setMinimumSize(new Dimension(32767, 32767));
 
         ImageIcon icon = new ImageIcon(getClass().getResource("./../img/doc.png"));
         this.jLabel1.setIcon(icon);
@@ -252,11 +252,11 @@ public final class JFrameMemoria extends javax.swing.JFrame {
 
         jLabelP1Acertos.setFont(new java.awt.Font("Alef", 1, 12)); // NOI18N
         jLabelP1Acertos.setForeground(new java.awt.Color(0, 204, 0));
-        jLabelP1Acertos.setText("jLabel9");
+        jLabelP1Acertos.setText("0");
 
         jLabelP1Erros.setFont(new java.awt.Font("Alef", 1, 12)); // NOI18N
         jLabelP1Erros.setForeground(new java.awt.Color(255, 51, 51));
-        jLabelP1Erros.setText("jLabel9");
+        jLabelP1Erros.setText("0");
 
         jLabelP1TextoResultado.setFont(new java.awt.Font("Alef", 1, 14)); // NOI18N
         jLabelP1TextoResultado.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -291,7 +291,7 @@ public final class JFrameMemoria extends javax.swing.JFrame {
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(jLabelP1TextoResultado, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(17, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -331,11 +331,11 @@ public final class JFrameMemoria extends javax.swing.JFrame {
 
         jLabelP2Acertos.setFont(new java.awt.Font("Alef", 1, 12)); // NOI18N
         jLabelP2Acertos.setForeground(new java.awt.Color(0, 204, 0));
-        jLabelP2Acertos.setText("jLabel9");
+        jLabelP2Acertos.setText("0");
 
         jLabelP2Erros.setFont(new java.awt.Font("Alef", 1, 12)); // NOI18N
         jLabelP2Erros.setForeground(new java.awt.Color(255, 51, 51));
-        jLabelP2Erros.setText("jLabel9");
+        jLabelP2Erros.setText("0");
 
         jLabelP2TextoResultado.setFont(new java.awt.Font("Alef", 1, 14)); // NOI18N
         jLabelP2TextoResultado.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -370,7 +370,7 @@ public final class JFrameMemoria extends javax.swing.JFrame {
                     .addGroup(jPanel3Layout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(jLabelP2TextoResultado, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(17, Short.MAX_VALUE))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -511,7 +511,7 @@ public final class JFrameMemoria extends javax.swing.JFrame {
 class EscreverMensagemObjeto extends Thread {
 
     ObjectOutputStream out;
-    ObjectInputStream in;    
+    ObjectInputStream in;
     String nome;
     JFrameMemoria jframe;
     int primeiro = 0;
@@ -522,25 +522,27 @@ class EscreverMensagemObjeto extends Thread {
         this.socket = socket;
         this.nome = nome;
         this.out = new ObjectOutputStream(socket.getOutputStream());
-        this.in = new ObjectInputStream(socket.getInputStream());        
+        this.in = new ObjectInputStream(socket.getInputStream());
         this.jframe = jframe;
     }
 
     @Override
     public void run() {
-
+        System.out.println("ENTROU RUNNNNNNN");
         try {
             while (true) {
-                if (jframe.jogo == null) {
+                if (jframe.jogo == null || this.nome == null) {
                     System.out.println("Entrou mensagem");
                     Mensagem me = new Mensagem();
-                    me.texto = "play|" + this.nome;
+                    me.texto = "play;" + this.nome;
                     out.writeObject(me);
-                    
-                    Object obj = in.readObject();
+                }
+                Object obj = in.readObject();
+
+                if (obj instanceof Mensagem) {
                     Mensagem m = (Mensagem) obj;
                     String buffer = m.texto;
-                    
+
                     System.out.println("buffer : " + buffer);
 
                     if ("contem".equals(buffer)) {
@@ -548,19 +550,19 @@ class EscreverMensagemObjeto extends Thread {
                         this.nome = null;
 
                     } else if ("esperando".equals(buffer)) {
-                        JOptionPane.showConfirmDialog(null, "Aguardando oponente...");
+                        JOptionPane.showMessageDialog(null, "Aguardando oponente...");
                         JFrameMemoria.meuNome = nome;
                         break;
                     }
                 } else {
                     System.out.println("Entrou jogo");
                     if (primeiro == 0) {
-                        jframe.jogo = (Jogo) in.readObject();
+                        jframe.jogo = (Jogo) obj;
                         jframe.iniciaParametrosJogo();
                     }
                     System.out.println("JOGO" + jframe.jogo);
                     primeiro++;
-                    jframe.jogo = (Jogo) in.readObject();
+                    jframe.jogo = (Jogo) obj;
 
                     if (jframe.jogo.jogador1.nome.equals(jframe.meuNome) && jframe.jogo.jogador1.jogando == false) {
                         jframe.jogo.jogador2.jogando = true;
@@ -570,11 +572,13 @@ class EscreverMensagemObjeto extends Thread {
                         this.out.writeObject(jframe.jogo);
                     }
                 }
+
             }
 
         } catch (IOException ex) {
             Logger.getLogger(EscreverMensagemObjeto.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ClassNotFoundException ex) {
+            
             Logger.getLogger(EscreverMensagemObjeto.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
