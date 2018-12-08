@@ -44,8 +44,6 @@ public final class JFrameMemoria extends javax.swing.JFrame implements Runnable 
 
     private JButton[][] mb = new JButton[6][6];
 
-
-
     ArrayList<String> fotos = new ArrayList<String>();
 
     int cliques = 0, i_prim = 0, j_prim = 0, i_sec = 0, j_sec = 0;
@@ -57,15 +55,25 @@ public final class JFrameMemoria extends javax.swing.JFrame implements Runnable 
      */
     public void setAcerto() {
         this.jLabelP1Acertos.setText(String.valueOf(jogo.jogador1.acertos));
+        this.jLabelP2Acertos.setText(String.valueOf(jogo.jogador2.acertos));
+
     }
 
     public void setErro() {
+        System.out.println("EROOOOOO" + jogo.jogador1.equals(jogo.jogador2));
+        if (jogo.jogador1.nome.equals(this.nome)) {
+            jogo.jogador1.erros += 1;
+        } else {
+            jogo.jogador2.erros += 1;
+        }
         this.jLabelP1Erros.setText(String.valueOf(jogo.jogador1.erros));
+        this.jLabelP2Erros.setText(String.valueOf(jogo.jogador2.erros));
+
     }
 
     public void selecionaButton(int i, int j) {
-        if ((jogo.jogador1.nome.equals(meuNome) && jogo.jogador1.jogando == true)
-                || jogo.jogador2.nome.equals(meuNome) && jogo.jogador2.jogando == true) {
+        if ((jogo.jogador1.nome.equals(this.nome) && jogo.jogador1.jogando == true)
+                || jogo.jogador2.nome.equals(this.nome) && jogo.jogador2.jogando == true) {
             mb[i][j].setEnabled(true);
         }
 
@@ -81,7 +89,7 @@ public final class JFrameMemoria extends javax.swing.JFrame implements Runnable 
             mb[i][j].setIcon(new ImageIcon(getClass().getResource(jogo.ci[i][j])));
 
             if (jogo.ci[i_prim][j_prim].equals(jogo.ci[i_sec][j_sec])) {
-                if (jogo.jogador1.nome.equals(meuNome)) {
+                if (jogo.jogador1.nome.equals(this.nome)) {
                     jogo.jogador1.acertos += 1;
                 } else {
                     jogo.jogador2.acertos += 1;
@@ -92,7 +100,6 @@ public final class JFrameMemoria extends javax.swing.JFrame implements Runnable 
                 jogo.mr[i_sec][j_sec] = 1;
             } else {
                 setErro();
-                // jogo.p1Erros += 1;
             }
 
             atualizaInterface();
@@ -134,7 +141,7 @@ public final class JFrameMemoria extends javax.swing.JFrame implements Runnable 
         jPanel1.setLayout(new GridLayout(6, 6));
 
         jPanel1.setSize(32767, 32767);
-        jPanel1.setMinimumSize(new Dimension(32767, 32767));
+        //jPanel1.setMinimumSize(new Dimension(32767, 32767));
 
         for (int i = 0; i < 6; i++) {
             for (int j = 0; j < 6; j++) {
@@ -143,8 +150,8 @@ public final class JFrameMemoria extends javax.swing.JFrame implements Runnable 
                 mb[i][j] = new JButton(new ImageIcon(getClass().getResource("./../img/question.png")));
                 if (jogo.jogador1 == null || jogo.jogador2 == null) {
                     mb[i][j].setEnabled(false);
-                } else if ((jogo.jogador1.nome.equals(meuNome) && jogo.jogador1.jogando == true)
-                        || jogo.jogador2.nome.equals(meuNome) && jogo.jogador2.jogando == true) {
+                } else if ((jogo.jogador1.nome.equals(this.nome) && jogo.jogador1.jogando == true)
+                        || jogo.jogador2.nome.equals(this.nome) && jogo.jogador2.jogando == true) {
                     mb[i][j].setEnabled(true);
 
                 }
@@ -552,7 +559,7 @@ public final class JFrameMemoria extends javax.swing.JFrame implements Runnable 
                 iniciaNovoJogo(this.jogo);
                 iniciado = true;
             } else {
-                 atualizaJogo(this.jogo);
+                atualizaJogo(this.jogo);
             }
         }
     }
