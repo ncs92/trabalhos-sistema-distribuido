@@ -36,6 +36,7 @@ public final class JFrameMemoria extends javax.swing.JFrame {
     Jogo jogo = null;
     int cliques = 0, i_prim = 0, j_prim = 0, i_sec = 0, j_sec = 0;
     static String meuNome = "";
+    EscreverMensagemObjeto escrever;
 
     /**
      * Creates new form JFrameVelha
@@ -92,14 +93,18 @@ public final class JFrameMemoria extends javax.swing.JFrame {
                     } catch (InterruptedException ex) {
                         Logger.getLogger(JFrameMemoria.class.getName()).log(Level.SEVERE, null, ex);
                     }
-                    ocultaIcones();
+                    try {
+                        ocultaIcones();
+                    } catch (IOException ex) {
+                        Logger.getLogger(JFrameMemoria.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
             }).start();
             cliques = 0;
         }
     }
 
-    public void ocultaIcones() {
+    public void ocultaIcones() throws IOException {
         for (int i = 0; i < 6; i++) {
             for (int j = 0; j < 6; j++) {
                 if (jogo.mr[i][j] == 0) {
@@ -107,6 +112,7 @@ public final class JFrameMemoria extends javax.swing.JFrame {
                 }
             }
         }
+        escrever.enviaJogo();
     }
 
     public void iniciaConexao() throws IOException {
@@ -118,8 +124,8 @@ public final class JFrameMemoria extends javax.swing.JFrame {
             /* conecta com o servidor */
             Socket clientSocket = new Socket(serverAddr, serverPort);
 
-            new EscreverMensagemObjeto(clientSocket, meuNome, this)
-                    .start();
+            escrever = new EscreverMensagemObjeto(clientSocket, meuNome, this);
+            escrever.start();
         } catch (UnknownHostException ue) {
             System.out.println("Socket:" + ue.getMessage());
         }
@@ -526,6 +532,16 @@ class EscreverMensagemObjeto extends Thread {
         this.jframe = jframe;
     }
 
+    public void enviaJogo() throws IOException {
+        if (jframe.jogo.jogador1.nome.equals(jframe.meuNome) && jframe.jogo.jogador1.jogando == false) {
+            jframe.jogo.jogador2.jogando = true;
+            this.out.writeObject(jframe.jogo);
+        } else if (jframe.jogo.jogador2.nome.equals(jframe.meuNome) && jframe.jogo.jogador2.jogando == false) {
+            jframe.jogo.jogador1.jogando = true;
+            this.out.writeObject(jframe.jogo);
+        }
+    }
+
     @Override
     public void run() {
         System.out.println("ENTROU RUNNNNNNN");
@@ -556,7 +572,7 @@ class EscreverMensagemObjeto extends Thread {
                     }
                 } else {
                     System.out.println("Entrou jogo");
-                    System.out.println((Jogo) obj);
+
                     if (primeiro == 0) {
                         jframe.jogo = (Jogo) obj;
                         jframe.iniciaParametrosJogo();
@@ -565,13 +581,6 @@ class EscreverMensagemObjeto extends Thread {
                     primeiro++;
                     jframe.jogo = (Jogo) obj;
 
-                    if (jframe.jogo.jogador1.nome.equals(jframe.meuNome) && jframe.jogo.jogador1.jogando == false) {
-                        jframe.jogo.jogador2.jogando = true;
-                        this.out.writeObject(jframe.jogo);
-                    } else if (jframe.jogo.jogador2.nome.equals(jframe.meuNome) && jframe.jogo.jogador2.jogando == false) {
-                        jframe.jogo.jogador1.jogando = true;
-                        this.out.writeObject(jframe.jogo);
-                    }
                 }
 
             }
@@ -579,7 +588,7 @@ class EscreverMensagemObjeto extends Thread {
         } catch (IOException ex) {
             Logger.getLogger(EscreverMensagemObjeto.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ClassNotFoundException ex) {
-            
+
             Logger.getLogger(EscreverMensagemObjeto.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
