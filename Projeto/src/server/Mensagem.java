@@ -12,6 +12,17 @@ import java.io.Serializable;
  * @author Elaine
  */
 public class Mensagem implements Serializable {
-private static final long serialVersionUID = 1L;
+    
+    private static final long serialVersionUID = 1L;
+    
     public String texto;
+    
+    
+    public Mensagem() {
+        
+    }
+    
+    public Mensagem(String texto) {
+        this.texto = texto;
+    }
 }

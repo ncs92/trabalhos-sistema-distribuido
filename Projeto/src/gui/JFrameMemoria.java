@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package projeto;
+package gui;
 
 import java.awt.Dimension;
 import java.awt.GridLayout;
@@ -13,12 +13,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import server.Jogo;
 import server.Mensagem;
@@ -27,13 +25,32 @@ import server.Mensagem;
  *
  * @author Elaine
  */
-public final class JFrameMemoria extends javax.swing.JFrame {
+public final class JFrameMemoria extends javax.swing.JFrame implements Runnable {
+    
+    private static final String SERVER_HOST = "127.0.0.1";
+    private static final int SERVER_PORT = 6365;
+    
+    private Socket socket;
+    private ObjectInputStream in;
+    private ObjectOutputStream out;
+    
+    private String nome;
+    private boolean jogando = false;
+    private int acertos = 0;
+    private int erros = 0;
+    
+    private boolean iniciado = false;
+    private Jogo jogo;
+    
+    private JButton[][] mb = new JButton[6][6];
+    
+    
 
     ArrayList<String> fotos = new ArrayList<String>();
-    Jogo jogo = null;
+    
     int cliques = 0, i_prim = 0, j_prim = 0, i_sec = 0, j_sec = 0;
     static String meuNome = "";
-    EscreverMensagemObjeto escrever;
+    // EscreverMensagemObjeto escrever;
 
     /**
      * Creates new form JFrameVelha
@@ -46,24 +63,24 @@ public final class JFrameMemoria extends javax.swing.JFrame {
         this.jLabelP1Erros.setText(String.valueOf(jogo.jogador1.erros));
     }
 
-    public void selecionaButton(int i, int j) throws InterruptedException {
+    public void selecionaButton(int i, int j) {
         if ((jogo.jogador1.nome.equals(meuNome) && jogo.jogador1.jogando == true)
                 || jogo.jogador2.nome.equals(meuNome) && jogo.jogador2.jogando == true) {
-            jogo.mb[i][j].setEnabled(true);
-
+            mb[i][j].setEnabled(true);
         }
+        
         cliques++;
         if (cliques == 1) {
             i_prim = i;
             j_prim = j;
-            jogo.mb[i][j].setIcon(new ImageIcon(getClass().getResource(jogo.caminhoImagens[i][j])));
+            mb[i][j].setIcon(new ImageIcon(getClass().getResource(jogo.ci[i][j])));
 
         } else if (cliques == 2) {
             i_sec = i;
             j_sec = j;
-            jogo.mb[i][j].setIcon(new ImageIcon(getClass().getResource(jogo.caminhoImagens[i][j])));
+            mb[i][j].setIcon(new ImageIcon(getClass().getResource(jogo.ci[i][j])));
 
-            if (jogo.caminhoImagens[i_prim][j_prim].equals(jogo.caminhoImagens[i_sec][j_sec])) {
+            if (jogo.ci[i_prim][j_prim].equals(jogo.ci[i_sec][j_sec])) {
                 if (jogo.jogador1.nome.equals(meuNome)) {
                     jogo.jogador1.acertos += 1;
                 } else {
@@ -77,97 +94,124 @@ public final class JFrameMemoria extends javax.swing.JFrame {
                 setErro();
                 // jogo.p1Erros += 1;
             }
-            if (jogo.jogador1.nome.equals(meuNome)) {
-                jogo.jogador1.jogando = false;
-            } else {
-                jogo.jogador2.jogando = false;
-            }
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException ex) {
-                        Logger.getLogger(JFrameMemoria.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                    try {
-                        ocultaIcones();
-                    } catch (IOException ex) {
-                        Logger.getLogger(JFrameMemoria.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }
-            }).start();
+            
+            atualizaInterface();
             cliques = 0;
         }
     }
-
-    public void ocultaIcones() throws IOException {
+    
+    private void ocultaIcones() {
         for (int i = 0; i < 6; i++) {
             for (int j = 0; j < 6; j++) {
                 if (jogo.mr[i][j] == 0) {
-                    jogo.mb[i][j].setIcon(new ImageIcon(getClass().getResource("./../img/question.png")));
+                    mb[i][j].setIcon(new ImageIcon(getClass().getResource("./../img/question.png")));
                 }
             }
         }
-        escrever.enviaJogo();
     }
-
-    public void iniciaConexao() throws IOException {
-        try {
-            /* Endereço e porta do servidor */
-            int serverPort = 6365;
-            InetAddress serverAddr = InetAddress.getByName("127.0.0.1");
-
-            /* conecta com o servidor */
-            Socket clientSocket = new Socket(serverAddr, serverPort);
-
-            escrever = new EscreverMensagemObjeto(clientSocket, meuNome, this);
-            escrever.start();
-        } catch (UnknownHostException ue) {
-            System.out.println("Socket:" + ue.getMessage());
-        }
+    
+    private void atualizaInterface() {
+        Runnable r = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(1000);
+                    ocultaIcones();
+                    out.writeObject(jogo);
+                    
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        };
+        
+        new Thread(r).start();
     }
-
-    public void iniciaParametrosJogo() {
+    
+    private void iniciaNovoJogo(Jogo jogo) {
         jPanel1.setLayout(new GridLayout(6, 6));
 
         jPanel1.setSize(32767, 32767);
         jPanel1.setMinimumSize(new Dimension(32767, 32767));
-
+        
         for (int i = 0; i < 6; i++) {
             for (int j = 0; j < 6; j++) {
                 final int i1 = i;
                 final int j1 = j;
-                jogo.mb[i][j].setIcon(new ImageIcon(getClass().getResource("./../img/question.png")));
+                mb[i][j] = new JButton(new ImageIcon(getClass().getResource("./../img/question.png")));
                 if (jogo.jogador1 == null || jogo.jogador2 == null) {
-                    jogo.mb[i][j].setEnabled(false);
+                    mb[i][j].setEnabled(false);
                 } else if ((jogo.jogador1.nome.equals(meuNome) && jogo.jogador1.jogando == true)
                         || jogo.jogador2.nome.equals(meuNome) && jogo.jogador2.jogando == true) {
-                    jogo.mb[i][j].setEnabled(true);
+                    mb[i][j].setEnabled(true);
 
                 }
-                jogo.mb[i][j].addActionListener((ActionEvent ae) -> {
-                    try {
-                        selecionaButton(i1, j1);
-                    } catch (InterruptedException ex) {
-                        Logger.getLogger(JFrameMemoria.class.getName()).log(Level.SEVERE, null, ex);
-                    }
+                
+                mb[i][j].addActionListener((ActionEvent ae) -> {
+                    selecionaButton(i1, j1);
                 });
+                
+                if (this.nome.equals(jogo.jogador1.nome)) {
+                    mb[i][j].setEnabled(jogo.jogador1.jogando);
+                    
+                } else if (this.nome.equals(jogo.jogador2.nome)) {
+                    mb[i][j].setEnabled(jogo.jogador2.jogando);
+                }
 
-                jPanel1.add(jogo.mb[i][j]);
+                jPanel1.add(mb[i][j]);
             }
-        };
+        }
         
         if (jogo.jogador1 != null && jogo.jogador2 != null) {
             this.jLabelP1Acertos.setText(String.valueOf(jogo.jogador1.acertos));
-            this.jLabelP2Acertos.setText(String.valueOf(jogo.jogador2.acertos));
             this.jLabelP1Erros.setText(String.valueOf(jogo.jogador1.erros));
+            
+            this.jLabelP2Acertos.setText(String.valueOf(jogo.jogador2.acertos));
+            this.jLabelP2Erros.setText(String.valueOf(jogo.jogador2.erros));
+        }
+    }
+    
+    private void atualizaJogo(Jogo jogo) {
+        for (int i = 0; i < 6; i++) {
+            for (int j = 0; j < 6; j++) {
+                final int i1 = i;
+                final int j1 = j;                
+                
+                if (this.nome.equals(jogo.jogador1.nome)) {
+                    mb[i][j].setEnabled(jogo.jogador1.jogando);
+                    
+                } else if (this.nome.equals(jogo.jogador2.nome)) {
+                    mb[i][j].setEnabled(jogo.jogador2.jogando);
+                }
+                
+                if (jogo.mr[i][j] == 1) {
+                    mb[i][j].setIcon(new ImageIcon(getClass().getResource(jogo.ci[i][j])));
+                    mb[i][j].setEnabled(false);
+                } else {
+                    mb[i][j].setIcon(new ImageIcon(getClass().getResource("./../img/question.png")));
+                }
+            }
+        }
+        
+        if (jogo.jogador1 != null && jogo.jogador2 != null) {
+            this.jLabelP1Acertos.setText(String.valueOf(jogo.jogador1.acertos));
+            this.jLabelP1Erros.setText(String.valueOf(jogo.jogador1.erros));
+            
+            this.jLabelP2Acertos.setText(String.valueOf(jogo.jogador2.acertos));
             this.jLabelP2Erros.setText(String.valueOf(jogo.jogador2.erros));
         }
     }
 
     public JFrameMemoria() throws IOException {
         initComponents();
+        
+        socket = new Socket(InetAddress.getByName(SERVER_HOST), SERVER_PORT);
+        out = new ObjectOutputStream(socket.getOutputStream());
+        in = new ObjectInputStream(socket.getInputStream());
+        
+        new Thread(this).start();
 
         ImageIcon icon = new ImageIcon(getClass().getResource("./../img/doc.png"));
         this.jLabel1.setIcon(icon);
@@ -179,7 +223,7 @@ public final class JFrameMemoria extends javax.swing.JFrame {
         this.jLabelP2ImgResultado.setVisible(false);
         this.jLabelP1TextoResultado.setVisible(false);
         this.jLabelP2TextoResultado.setVisible(false);
-        geraNovoJogo();
+//        geraNovoJogo();
     }
 
     public void geraNovoJogo() {
@@ -219,9 +263,6 @@ public final class JFrameMemoria extends javax.swing.JFrame {
         setMinimumSize(new java.awt.Dimension(800, 487));
         setSize(new java.awt.Dimension(800, 487));
         addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowActivated(java.awt.event.WindowEvent evt) {
-                formWindowActivated(evt);
-            }
             public void windowOpened(java.awt.event.WindowEvent evt) {
                 formWindowOpened(evt);
             }
@@ -295,7 +336,7 @@ public final class JFrameMemoria extends javax.swing.JFrame {
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(jLabelP1TextoResultado, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                .addContainerGap(17, Short.MAX_VALUE))
+                .addContainerGap(15, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -374,7 +415,7 @@ public final class JFrameMemoria extends javax.swing.JFrame {
                     .addGroup(jPanel3Layout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(jLabelP2TextoResultado, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                .addContainerGap(17, Short.MAX_VALUE))
+                .addContainerGap(15, Short.MAX_VALUE))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -427,24 +468,21 @@ public final class JFrameMemoria extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void formWindowActivated(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowActivated
-
-    }//GEN-LAST:event_formWindowActivated
-
     private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
-        try {
-            while (true) {
-                String nome = JOptionPane.showInputDialog(null, "Informe seu nome");
-                if (nome != null && !"".equals(nome)) {
-                    this.meuNome = nome;
-                    break;
-                }
+        while (true) {
+            String nome = JOptionPane.showInputDialog(null, "Informe seu nome");
+            if (nome != null && !"".equals(nome)) {
+                this.nome = nome;
+                break;
             }
-
-            iniciaConexao();
-
+        }
+        
+        try {
+            registraUsuario();
+            System.out.println("Registrando usuario...");
         } catch (IOException ex) {
-            System.err.println("Falha ao abrir a conexão");
+            ex.printStackTrace();
+        } catch (ClassNotFoundException ex) {
             ex.printStackTrace();
         }
     }//GEN-LAST:event_formWindowOpened
@@ -483,10 +521,55 @@ public final class JFrameMemoria extends javax.swing.JFrame {
                 try {
                     new JFrameMemoria().setVisible(true);
                 } catch (IOException ex) {
-                    Logger.getLogger(JFrameMemoria.class.getName()).log(Level.SEVERE, null, ex);
+                    ex.printStackTrace();
                 }
             }
         });
+    }
+    
+    private void registraUsuario() throws IOException, ClassNotFoundException {
+        Mensagem me = new Mensagem("play|" + this.nome);
+        out.writeObject(me);
+    }
+    
+    private void ler() throws IOException, ClassNotFoundException {
+        Object objeto = in.readObject();
+        System.out.println("Novo objeto recebido");
+        
+        if (objeto instanceof Mensagem) {
+            // Mensagem mensagem = (Mensagem) objeto;
+            JOptionPane.showMessageDialog(null, "Aguardando outro jogador...");
+            
+        } else if (objeto instanceof Jogo) {
+            Jogo jogo = (Jogo) objeto;
+            System.out.println(jogo.acabou);
+            System.out.println(jogo.jogador1);
+            System.out.println(jogo.jogador2);
+            
+            this.jogo = jogo;
+            
+            if (!iniciado) {
+                iniciaNovoJogo(this.jogo);
+                iniciado = true;
+            } else {
+                 atualizaJogo(this.jogo);
+            }
+        }
+    }
+
+    @Override
+    public void run() {
+        try {
+            while (true) {
+                ler();
+            }
+            
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            
+        } catch (ClassNotFoundException ex) {
+            ex.printStackTrace();
+        }
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -510,84 +593,4 @@ public final class JFrameMemoria extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     // End of variables declaration//GEN-END:variables
-}
-
-class EscreverMensagemObjeto extends Thread {
-
-    ObjectOutputStream out;
-    ObjectInputStream in;
-    String nome;
-    JFrameMemoria jframe;
-    int primeiro = 0;
-
-    Socket socket;
-
-    public EscreverMensagemObjeto(Socket socket, String nome, JFrameMemoria jframe) throws IOException {
-        this.socket = socket;
-        this.nome = nome;
-        this.out = new ObjectOutputStream(socket.getOutputStream());
-        this.in = new ObjectInputStream(socket.getInputStream());
-        this.jframe = jframe;
-    }
-
-    public void enviaJogo() throws IOException {
-        if (jframe.jogo.jogador1.nome.equals(jframe.meuNome) && jframe.jogo.jogador1.jogando == false) {
-            jframe.jogo.jogador2.jogando = true;
-            this.out.writeObject(jframe.jogo);
-        } else if (jframe.jogo.jogador2.nome.equals(jframe.meuNome) && jframe.jogo.jogador2.jogando == false) {
-            jframe.jogo.jogador1.jogando = true;
-            this.out.writeObject(jframe.jogo);
-        }
-    }
-
-    @Override
-    public void run() {
-        System.out.println("ENTROU RUNNNNNNN");
-        try {
-            while (true) {
-                if (jframe.jogo == null || this.nome == null) {
-                    System.out.println("Entrou mensagem");
-                    Mensagem me = new Mensagem();
-                    me.texto = "play;" + this.nome;
-                    out.writeObject(me);
-                }
-                Object obj = in.readObject();
-
-                if (obj instanceof Mensagem) {
-                    Mensagem m = (Mensagem) obj;
-                    String buffer = m.texto;
-
-                    System.out.println("buffer : " + buffer);
-
-                    if ("contem".equals(buffer)) {
-                        JOptionPane.showMessageDialog(null, "Nome já está sendo utilizado");
-                        this.nome = null;
-
-                    } else if ("esperando".equals(buffer)) {
-                        JOptionPane.showMessageDialog(null, "Aguardando oponente...");
-                        JFrameMemoria.meuNome = nome;
-                        break;
-                    }
-                } else {
-                    System.out.println("Entrou jogo");
-
-                    if (primeiro == 0) {
-                        jframe.jogo = (Jogo) obj;
-                        jframe.iniciaParametrosJogo();
-                    }
-                    System.out.println("JOGO" + jframe.jogo);
-                    primeiro++;
-                    jframe.jogo = (Jogo) obj;
-
-                }
-
-            }
-
-        } catch (IOException ex) {
-            Logger.getLogger(EscreverMensagemObjeto.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ClassNotFoundException ex) {
-
-            Logger.getLogger(EscreverMensagemObjeto.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
 }

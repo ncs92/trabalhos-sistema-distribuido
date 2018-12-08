@@ -11,12 +11,11 @@ public class Jogo implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    ArrayList<String> fotos = new ArrayList<String>();
-    public List<Integer> escolherAleatorio = new ArrayList();
+    ArrayList<String> fotos = new ArrayList<>();
+    public List<Integer> escolherAleatorio = new ArrayList<>();
 
-    public JButton[][] mb = new JButton[6][6];
-    public int[][] mr = new int[6][6];
-    public String[][] caminhoImagens = new String[6][6];
+    public int[][] mr = new int[6][6]; // matriz resultado
+    public String[][] ci = new String[6][6]; // ci = caminho imagem
 
     public boolean acabou = false;
     public Usuario jogador1;
@@ -35,9 +34,8 @@ public class Jogo implements Serializable {
 
         for (int i = 0; i < 6; i++) {
             for (int j = 0; j < 6; j++) {
-                mb[i][j] = new JButton();
                 int num = escolheFoto() - 1;
-                caminhoImagens[i][j] = "./../img/" + fotos.get(num);
+                ci[i][j] = "./../img/" + fotos.get(num);
                 final int i1 = i;
                 final int j1 = j;
 
