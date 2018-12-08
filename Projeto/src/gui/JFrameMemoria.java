@@ -18,7 +18,6 @@ import java.util.Collections;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
-import static projeto.JFrameMemoria.meuNome;
 import server.Jogo;
 import server.Mensagem;
 
@@ -595,90 +594,3 @@ public final class JFrameMemoria extends javax.swing.JFrame implements Runnable 
     private javax.swing.JPanel jPanel3;
     // End of variables declaration//GEN-END:variables
 }
-<<<<<<< HEAD:Projeto/src/gui/JFrameMemoria.java
-=======
-
-class EscreverMensagemObjeto extends Thread {
-
-    ObjectOutputStream out;
-    ObjectInputStream in;
-    String nome;
-    JFrameMemoria jframe;
-    int primeiro = 0;
-
-    Socket socket;
-
-    public EscreverMensagemObjeto(Socket socket, String nome, JFrameMemoria jframe) throws IOException {
-        this.socket = socket;
-        this.nome = nome;
-        this.out = new ObjectOutputStream(socket.getOutputStream());
-        this.in = new ObjectInputStream(socket.getInputStream());
-        this.jframe = jframe;
-    }
-
-    public void enviaJogo() throws IOException {
-        this.out.writeObject(jframe.jogo);
-    }
-
-    @Override
-    public void run() {
-        System.out.println("ENTROU RUNNNNNNN");
-        try {
-            while (true) {
-                if (jframe.jogo == null || this.nome == null) {
-                    System.out.println("Entrou mensagem");
-                    Mensagem me = new Mensagem();
-                    me.texto = "play;" + this.nome;
-                    out.writeObject(me);
-                }
-                Object obj = in.readObject();
-
-                if (obj instanceof Mensagem) {
-                    Mensagem m = (Mensagem) obj;
-                    String buffer = m.texto;
-
-                    System.out.println("buffer : " + buffer);
-
-                    if ("contem".equals(buffer)) {
-                        JOptionPane.showMessageDialog(null, "Nome já está sendo utilizado");
-                        this.nome = null;
-
-                    } else if ("esperando".equals(buffer)) {
-                        JOptionPane.showMessageDialog(null, "Aguardando oponente...");
-                        JFrameMemoria.meuNome = nome;
-                        break;
-                    }
-                } else {
-                    System.out.println("Entrou jogo");
-
-                    if (primeiro == 0) {
-                        jframe.jogo = (Jogo) obj;
-                        jframe.iniciaParametrosJogo();
-                    }
-                    System.out.println("JOGO" + jframe.jogo);
-                    primeiro++;
-                    jframe.jogo = (Jogo) obj;
-                    for (int i = 0; i < 6; i++) {
-                        for (int j = 0; j < 6; j++) {
-                            if ((jframe.jogo.jogador1.nome.equals(meuNome) && jframe.jogo.jogador1.jogando == true)
-                                    || jframe.jogo.jogador2.nome.equals(meuNome) && jframe.jogo.jogador2.jogando == true) {
-                                jframe.jogo.mb[i][j].setEnabled(true);
-                            } else {
-                                jframe.jogo.mb[i][j].setEnabled(false);
-                            }
-                        }
-                    }
-
-                }
-
-            }
-
-        } catch (IOException ex) {
-            Logger.getLogger(EscreverMensagemObjeto.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ClassNotFoundException ex) {
-
-            Logger.getLogger(EscreverMensagemObjeto.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-}
->>>>>>> master:Projeto/src/projeto/JFrameMemoria.java
