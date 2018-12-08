@@ -20,6 +20,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
+import static projeto.JFrameMemoria.meuNome;
 import server.Jogo;
 import server.Mensagem;
 
@@ -47,11 +48,7 @@ public final class JFrameMemoria extends javax.swing.JFrame {
     }
 
     public void selecionaButton(int i, int j) throws InterruptedException {
-        if ((jogo.jogador1.nome.equals(meuNome) && jogo.jogador1.jogando == true)
-                || jogo.jogador2.nome.equals(meuNome) && jogo.jogador2.jogando == true) {
-            jogo.mb[i][j].setEnabled(true);
 
-        }
         cliques++;
         if (cliques == 1) {
             i_prim = i;
@@ -159,7 +156,7 @@ public final class JFrameMemoria extends javax.swing.JFrame {
                 jPanel1.add(jogo.mb[i][j]);
             }
         };
-        
+
         if (jogo.jogador1 != null && jogo.jogador2 != null) {
             this.jLabelP1Acertos.setText(String.valueOf(jogo.jogador1.acertos));
             this.jLabelP2Acertos.setText(String.valueOf(jogo.jogador2.acertos));
@@ -533,7 +530,7 @@ class EscreverMensagemObjeto extends Thread {
     }
 
     public void enviaJogo() throws IOException {
-        this.out.writeObject(jframe.jogo);      
+        this.out.writeObject(jframe.jogo);
     }
 
     @Override
@@ -574,6 +571,16 @@ class EscreverMensagemObjeto extends Thread {
                     System.out.println("JOGO" + jframe.jogo);
                     primeiro++;
                     jframe.jogo = (Jogo) obj;
+                    for (int i = 0; i < 6; i++) {
+                        for (int j = 0; j < 6; j++) {
+                            if ((jframe.jogo.jogador1.nome.equals(meuNome) && jframe.jogo.jogador1.jogando == true)
+                                    || jframe.jogo.jogador2.nome.equals(meuNome) && jframe.jogo.jogador2.jogando == true) {
+                                jframe.jogo.mb[i][j].setEnabled(true);
+                            } else {
+                                jframe.jogo.mb[i][j].setEnabled(false);
+                            }
+                        }
+                    }
 
                 }
 
