@@ -17,10 +17,11 @@ import model.User;
 public class MainWindow extends javax.swing.JFrame implements ClientListener {
     
     private static final String UDP_ADDRESS = "127.0.0.1";
-    private static final int DATAGRAM_PORT = 6799;
+    private static final int DATAGRAM_PORT_SERVER = 6798;
     
     private static final String MULTICAST_ADDRESS = "225.1.2.3";
-    private static final int MULTICAST_PORT = 6789;
+    private static final int MULTICAST_PORT_SERVER = 6788;
+    private static final int MULTICAST_PORT_SEND = 6789;
     
     private static final String TCP_ADDRESS = "127.0.0.1";
     private static final int TCP_PORT = 9090;
@@ -49,7 +50,7 @@ public class MainWindow extends javax.swing.JFrame implements ClientListener {
     private User createGroupUser() throws UnknownHostException {
         User user = new User();
         user.address = InetAddress.getByName(MULTICAST_ADDRESS);
-        user.port = MULTICAST_PORT;
+        user.port = MULTICAST_PORT_SEND;
         user.nick = "Todos do grupo";
         
         return user;
@@ -91,7 +92,7 @@ public class MainWindow extends javax.swing.JFrame implements ClientListener {
         InetAddress address = InetAddress.getByName(MULTICAST_ADDRESS);
         byte[] buffer = ("JOINACK|" + nick).getBytes();
  
-        DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, MULTICAST_PORT);
+        DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, MULTICAST_PORT_SEND);
         datagram.send(packet);
     }
     
@@ -99,7 +100,7 @@ public class MainWindow extends javax.swing.JFrame implements ClientListener {
         try {
             InetAddress group = InetAddress.getByName(MULTICAST_ADDRESS);
             
-            multicast = new MulticastSocket(MULTICAST_PORT);
+            multicast = new MulticastSocket(MULTICAST_PORT_SERVER);
             multicast.joinGroup(group);
             
             new DatagramClientWorker(multicast, this)
@@ -117,7 +118,7 @@ public class MainWindow extends javax.swing.JFrame implements ClientListener {
     private void startDatagramWorker() {
         try {
             
-            datagram = new DatagramSocket(DATAGRAM_PORT);
+            datagram = new DatagramSocket(DATAGRAM_PORT_SERVER);
             
             new DatagramClientWorker(datagram, this)
                     .start();
@@ -170,7 +171,7 @@ public class MainWindow extends javax.swing.JFrame implements ClientListener {
         if (findUserByNick(nick) == null) {
             User user = new User();
             user.address = address;
-            user.port = DATAGRAM_PORT;
+            user.port = MULTICAST_PORT_SEND;
             user.nick = nick;
 
             users.addElement(user);
@@ -192,7 +193,7 @@ public class MainWindow extends javax.swing.JFrame implements ClientListener {
         
         User user = new User();
         user.address = address;
-        user.port = MULTICAST_PORT;
+        user.port = DATAGRAM_PORT_SERVER;
         user.nick = nick;
         
         users.addElement(user);
